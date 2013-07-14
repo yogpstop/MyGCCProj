@@ -1,0 +1,4 @@
+LIBRARY x264_output
+
+EXPORTS
+	GetOutputPluginTable @1

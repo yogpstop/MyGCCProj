@@ -1,0 +1,31 @@
+#include "resource.h"
+#include "windows.h"
+
+_CONFIG DIALOG 0, 0, 548, 274
+CAPTION "簡易x264出力プラグイン設定"
+BEGIN
+    //1行目
+    CTEXT           "x264バイナリ:",      IDC_STATIC,   15,  10,  52,  8
+    EDITTEXT                              IDC_EDIT1,    71,   7, 386, 14
+    PUSHBUTTON      "ファイルを選択(&F)", IDC_BUTTON1, 461,   7,  80, 14
+    //2行目
+    CTEXT           "x264引数:",          IDC_STATIC,   31,  51,  36,  8
+    EDITTEXT                              IDC_EDIT2,    71,  28, 470, 54
+    //3行目
+    CTEXT           "qaacバイナリ:",      IDC_STATIC,   15,  92,  52,  8
+    EDITTEXT                              IDC_EDIT3,    71,  89, 386, 14
+    PUSHBUTTON      "ファイルを選択(&F)", IDC_BUTTON2, 461,  89,  80, 14
+    //4行目
+    CTEXT           "qaac引数:",          IDC_STATIC,   31, 133,  36,  8
+    EDITTEXT                              IDC_EDIT4,    71, 110, 470, 54
+    //5行目
+    CTEXT           "MP4BOXバイナリ:",    IDC_STATIC,    7, 174,  60,  8
+    EDITTEXT                              IDC_EDIT5,    71, 171, 386, 14
+    PUSHBUTTON      "ファイルを選択(&F)", IDC_BUTTON3, 461, 171,  80, 14
+    //6行目
+    CTEXT           "MP4BOX引数:",        IDC_STATIC,   23, 215,  44,  8
+    EDITTEXT                              IDC_EDIT6,    71, 192, 470, 54
+    //7行目
+    DEFPUSHBUTTON   "&OK",                IDOK,        192, 253,  80, 14
+    PUSHBUTTON      "キャンセル(&C)",     IDCANCEL,    276, 253,  80, 14
+END
