@@ -4,8 +4,6 @@
 
 #define FRAME_LEN 50000000 //20fps
 
-#define MUTEX_WORD TEXT("yogp_dsf_mtx")
-
 #define SET_TEXT(b); if(yogpdsf_curmode&FLAG_##b)\
 	SetWindowText(b,TEXT(#b));\
 	else\
@@ -13,10 +11,9 @@
 
 #define MY_CREATE_BUTTON(a,b,c); a = CreateWindow(TEXT("BUTTON"),NULL,WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON,b,c,150,23,hWnd,(HMENU)ID_##a,GetModuleHandle(NULL),NULL);
 
-#define SWITCH(a); case ID_##a: { HANDLE hmut = OpenMutex(MUTEX_ALL_ACCESS,FALSE,MUTEX_WORD);\
-	yogpdsf_curmode ^= FLAG_##a;\
+#define SWITCH(a); case ID_##a: { yogpdsf_curmode ^= FLAG_##a;\
 	SET_TEXT(a);\
-	ReleaseMutex(hmut); CloseHandle(hmut); return 0; }
+	return 0; }
 
 #define FLAG_CLIENT 0x1
 #define FLAG_TIMER 0x2
@@ -39,6 +36,36 @@ private:
 	MainFilter(LPUNKNOWN,HRESULT*);
 	~MainFilter();
 	CSourceStream *m_pPin;
+};
+
+class IYOGPSource {
+public:
+	virtual float* getImage() = 0;
+	virtual void releaseImage() = 0;
+};
+
+class C_HDC : public IYOGPSource {
+public:
+	C_HDC(int inw,int inh,int outw,int outh,int inx,int iny);
+
+	~C_HDC();
+
+ 	float* getImage();
+
+	void releaseImage();
+private:
+	HDC hdc;
+	HDC hcpt;
+	HBITMAP bmpcpt;
+	BITMAPINFOHEADER bmih;
+	VOID *bitmap;
+	int ow;
+	int oh;
+	int ix;
+	int iy;
+	float scale;
+	float *a;
+	float *b;
 };
 
 class MainPin : public CSourceStream, public IAMStreamConfig, public IKsPropertySet/*, public IAMPushSource*/ {
@@ -86,16 +113,20 @@ public:
 
 	STDMETHODIMP GetLatency(REFERENCE_TIME *);*/
 private:
-	HDC hDesktopDC;
-	HDC hCaptureDC;
-	HBITMAP hCaptureBitmap;
-	VOID *bitmap;
 	AM_MEDIA_TYPE ammt;
 	VIDEOINFO vidinfo;
 	int m_iFrameNumber;
-	HBITMAP hBmp;
-	HBITMAP hBmp2;
-	HDC toplayer;
-	HDC background;
-	HANDLE hMutex;
+	IYOGPSource* test;
+	float* cache;
 };
+
+void nearest_neighbor(unsigned int, unsigned int, float,
+		float *, float *, unsigned int, unsigned int);
+
+void permeate(unsigned int, unsigned int, unsigned int,
+		unsigned int, float *, float *,
+		unsigned int, unsigned int, float);
+
+void unit_conv(float *, unsigned char *, unsigned int, bool);
+
+void output(unsigned char *, float *, unsigned int);

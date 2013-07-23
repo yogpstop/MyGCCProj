@@ -190,11 +190,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\hdc_capture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Register.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Window.cpp"
+				RelativePath=".\simple_operation.cpp"
 				>
 			</File>
 			<File

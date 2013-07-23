@@ -47,54 +47,12 @@ HRESULT MainPin::FillBuffer(IMediaSample *pSample) {
 	if(FAILED(hr))
 		return hr;
 	CheckPointer(p,E_POINTER);
-	HANDLE hmut = OpenMutex(MUTEX_ALL_ACCESS,FALSE,MUTEX_WORD);
-	int x,y;
-	if(yogpdsf_curmode & FLAG_IMAGE){
-		BitBlt(hCaptureDC,0,0,vidinfo.bmiHeader.biWidth,vidinfo.bmiHeader.biHeight,hDesktopDC,0,0,WHITENESS);
-		StretchBlt(hCaptureDC,280,0,720,720,background,0,0,1600,1600,SRCCOPY);
-	}else{
-		if(yogpdsf_curmode & FLAG_CLIENT) {
-			x = 4;
-			y = 23;
-		} else {
-			x = 0;
-			y = 0;
-		}
-		DWORD code = SRCCOPY;
-		if(yogpdsf_curmode & FLAG_LAYER)
-			code |= CAPTUREBLT;
-		BitBlt(hCaptureDC,0,0,vidinfo.bmiHeader.biWidth,vidinfo.bmiHeader.biHeight,hDesktopDC,x,y,code);
-	}
-	if(yogpdsf_curmode & FLAG_TITLE)
-		BitBlt(hCaptureDC,0,0,800,55,toplayer,0,0,SRCCOPY);
-	if(yogpdsf_curmode & FLAG_TIMER) {
-		SYSTEMTIME st;
-		TCHAR a[20];
-		if(yogpdsf_curmode & FLAG_START) {
-			ULONGLONG ull;
-			FILETIME ft;
-			GetLocalTime(&st);
-			SystemTimeToFileTime(&st,&ft);
-			ull = (((ULONGLONG) ft.dwHighDateTime) << 32) + ft.dwLowDateTime;
-			ull -= (((ULONGLONG) starttime.dwHighDateTime) << 32) + starttime.dwLowDateTime;
-			ft.dwLowDateTime  = (DWORD) (ull & 0xFFFFFFFF );
-			ft.dwHighDateTime = (DWORD) (ull >> 32 );
-			FileTimeToSystemTime(&ft,&st);
-		} else {
-			FileTimeToSystemTime(&starttime,&st);
-		}
-		_stprintf_s(a,20,TEXT("%02d:%02d:%02d:%03d"),st.wHour,st.wMinute,st.wSecond,st.wMilliseconds);
-		DrawText(hCaptureDC,a,_tcslen(a),&render,DT_RIGHT);
-	} else if(yogpdsf_curmode & FLAG_WATCH) {
-		SYSTEMTIME st;
-		TCHAR a[10];
-		GetLocalTime(&st);
-		_stprintf_s(a,20,TEXT("%02d:%02d:%02d"),st.wHour,st.wMinute,st.wSecond);
-		DrawText(hCaptureDC,a,_tcslen(a),&render,DT_RIGHT);
-	}
-	ReleaseMutex(hmut);
-	CloseHandle(hmut);
-	CopyMemory(p,bitmap,vidinfo.bmiHeader.biSizeImage);
+	ZeroMemory(cache,vidinfo.bmiHeader.biSizeImage*sizeof(float));
+	float* tp = test->getImage();
+	for(int x=0;x<vidinfo.bmiHeader.biWidth;x++)
+		for(int y=0;y<vidinfo.bmiHeader.biHeight;y++)
+			permeate(x,y,x,y,cache,tp,vidinfo.bmiHeader.biWidth,vidinfo.bmiHeader.biWidth,1);
+	output(p,cache,vidinfo.bmiHeader.biSizeImage);
 	pSample->SetActualDataLength(vidinfo.bmiHeader.biSizeImage);
 	return NOERROR;
 }
@@ -102,86 +60,31 @@ HRESULT MainPin::FillBuffer(IMediaSample *pSample) {
 MainPin::MainPin(HRESULT *phr,CSource *pms):
 CSourceStream(TEXT("YOGP_DSF"),phr,pms,TEXT("Capture")),
 m_iFrameNumber(0){
-	hDesktopDC = GetDC(GetDesktopWindow());
-	hCaptureDC = CreateCompatibleDC(hDesktopDC);
 	ZeroMemory(&vidinfo, sizeof(vidinfo));
 	vidinfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	vidinfo.bmiHeader.biWidth = 1280;
-	vidinfo.bmiHeader.biHeight = 720;
+	vidinfo.bmiHeader.biWidth = 640;
+	vidinfo.bmiHeader.biHeight = 360;
 	vidinfo.bmiHeader.biPlanes = 1;
-	vidinfo.bmiHeader.biBitCount = (WORD) GetDeviceCaps(hDesktopDC,BITSPIXEL);
+	vidinfo.bmiHeader.biBitCount = 24;
 	vidinfo.bmiHeader.biCompression = BI_RGB;
 	vidinfo.bmiHeader.biSizeImage = GetBitmapSize(&vidinfo.bmiHeader);
-	hCaptureBitmap = CreateDIBSection(hDesktopDC,(BITMAPINFO *)&vidinfo.bmiHeader,DIB_RGB_COLORS,&bitmap,NULL,0);
-	SelectObject(hCaptureDC,hCaptureBitmap);
 	vidinfo.AvgTimePerFrame = FRAME_LEN;
 	ZeroMemory(&ammt,sizeof(ammt));
 	ammt.majortype = MEDIATYPE_Video;
-	ammt.subtype = GetBitmapSubtype(&vidinfo.bmiHeader);
+	ammt.subtype = MEDIASUBTYPE_RGB24;
 	ammt.lSampleSize = vidinfo.bmiHeader.biSizeImage;
 	ammt.bFixedSizeSamples = TRUE;
 	ammt.bTemporalCompression = FALSE;
 	ammt.formattype = FORMAT_VideoInfo;
 	ammt.cbFormat = sizeof(VIDEOINFO);
 	ammt.pbFormat = (BYTE *)&vidinfo;
-
-	hBmp = (HBITMAP)LoadImage(NULL,TEXT("C:\\title.bmp"),IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
-	toplayer = CreateCompatibleDC(hDesktopDC);
-	SelectObject(toplayer,hBmp);
-
-	hBmp2 = (HBITMAP)LoadImage(NULL,TEXT("C:\\bg.bmp"),IMAGE_BITMAP,0,0,LR_LOADFROMFILE);
-	background = CreateCompatibleDC(hDesktopDC);
-	SelectObject(background,hBmp2);
-
-	DWORD a;
-	CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)dsfCreateWindow,NULL,0,&a);
-	hMutex = CreateMutex(NULL,FALSE,MUTEX_WORD);
-
-	yogpdsf_curmode = 0;
-	HANDLE hmut = OpenMutex(MUTEX_ALL_ACCESS,FALSE,MUTEX_WORD);
-	HKEY key;
-	RegCreateKeyEx(HKEY_CURRENT_USER,TEXT("SOFTWARE\\YOGPDSF"),0,NULL,REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&key,NULL);
-	DWORD size = sizeof(DWORD);
-	RegQueryValueEx(key,TEXT("DW"),NULL,NULL,(LPBYTE)&yogpdsf_curmode,&size);
-	size = sizeof(DWORD)*2;
-	RegQueryValueEx(key,TEXT("TIME"),NULL,NULL,(LPBYTE)&starttime,&size);
-	RegCloseKey(key);
-	ReleaseMutex(hmut);
-	CloseHandle(hmut);
-
-	render.top = 8;
-	render.bottom = 80;
-	render.left = 800;
-	render.right = 1280;
-
-	font = CreateFont(72,0,0,0,FW_HEAVY,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH|FF_DONTCARE,TEXT("Meiryo UI"));
-	SelectObject(hCaptureDC,font);
-	//SetBkMode(hCaptureDC, TRANSPARENT);
+	cache = new float[vidinfo.bmiHeader.biSizeImage];
+	test = new C_HDC(1920,1080,640,360,0,0);
 }
 
 MainPin::~MainPin() {
-	DeleteObject(hCaptureBitmap);
-	DeleteDC(hCaptureDC);
-	DeleteDC(toplayer);
-	DeleteObject(hBmp);
-	DeleteDC(background);
-	DeleteObject(hBmp2);
-	ReleaseDC(GetDesktopWindow(),hDesktopDC);
-
-	HWND hwnd = FindWindow(TEXT("yogp_dsf"),NULL);
-	SendMessage(hwnd,WM_CLOSE,0,0);
-
-	HANDLE hmut = OpenMutex(MUTEX_ALL_ACCESS,FALSE,MUTEX_WORD);
-	HKEY key;
-	RegCreateKeyEx(HKEY_CURRENT_USER,TEXT("SOFTWARE\\YOGPDSF"),0,NULL,REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&key,NULL);
-	RegSetValueEx(key,TEXT("DW"),NULL,REG_DWORD,(LPBYTE)&yogpdsf_curmode,sizeof(DWORD));
-	RegSetValueEx(key,TEXT("TIME"),NULL,REG_QWORD,(LPBYTE)&starttime,sizeof(DWORD)*2);
-	RegCloseKey(key);				ReleaseMutex(hmut);
-	CloseHandle(hmut);
-
-	CloseHandle(hMutex);
-
-	DeleteObject(font);
+	delete [] cache;
+	delete test;
 }
 
 HRESULT MainPin::CheckMediaType(const CMediaType *pMediaType) {
@@ -413,6 +316,8 @@ HRESULT MainPin::DoBufferProcessingLoop(void) {
 
 			nCurrent.QuadPart = nBefore.QuadPart +(m_iFrameNumber * nFreq.QuadPart / 20);
 			QueryPerformanceCounter(&nAfter);
+			if(nAfter.QuadPart>nCurrent.QuadPart)
+				continue;
 			::Sleep(1000*(nCurrent.QuadPart-nAfter.QuadPart)/nFreq.QuadPart);
 		}
 
