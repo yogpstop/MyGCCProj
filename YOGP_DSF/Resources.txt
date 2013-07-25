@@ -1,6 +1,6 @@
-Screen
-DirectX
-Image
+Screen(GDI)
+DirectX,OpenGL
+Media(Image,Movie)
 Camera
 Timer
 Watch
