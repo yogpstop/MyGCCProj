@@ -198,10 +198,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\simple_operation.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\YOGP_DSF.cpp"
 				>
 			</File>

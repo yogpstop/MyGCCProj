@@ -47,12 +47,7 @@ HRESULT MainPin::FillBuffer(IMediaSample *pSample) {
 	if(FAILED(hr))
 		return hr;
 	CheckPointer(p,E_POINTER);
-	ZeroMemory(cache,vidinfo.bmiHeader.biSizeImage*sizeof(float));
-	float* tp = test->getImage();
-	for(int x=0;x<vidinfo.bmiHeader.biWidth;x++)
-		for(int y=0;y<vidinfo.bmiHeader.biHeight;y++)
-			permeate(x,y,x,y,cache,tp,vidinfo.bmiHeader.biWidth,vidinfo.bmiHeader.biWidth,1);
-	output(p,cache,vidinfo.bmiHeader.biSizeImage);
+	test->getImage(p);
 	pSample->SetActualDataLength(vidinfo.bmiHeader.biSizeImage);
 	return NOERROR;
 }
@@ -78,12 +73,10 @@ m_iFrameNumber(0){
 	ammt.formattype = FORMAT_VideoInfo;
 	ammt.cbFormat = sizeof(VIDEOINFO);
 	ammt.pbFormat = (BYTE *)&vidinfo;
-	cache = new float[vidinfo.bmiHeader.biSizeImage];
-	test = new C_HDC(1920,1080,640,360,0,0);
+	test = new C_HDC();
 }
 
 MainPin::~MainPin() {
-	delete [] cache;
 	delete test;
 }
 
@@ -227,54 +220,16 @@ STDMETHODIMP MainPin::QuerySupported(REFGUID guidPropSet, DWORD dwPropID, DWORD 
 	return S_OK;
 }
 
-/*STDMETHODIMP MainPin::GetPushSourceFlags(ULONG *pFlags)
-{
-	CheckPointer(pFlags, E_POINTER);
-	*pFlags = 0;
-	return S_OK;
-}
-
-STDMETHODIMP MainPin::SetPushSourceFlags(ULONG Flags)
-{
-	return E_NOTIMPL;
-}
-
-STDMETHODIMP MainPin::GetMaxStreamOffset(REFERENCE_TIME *prtMaxOffset)
-{
-	CheckPointer(prtMaxOffset, E_POINTER);
-	*prtMaxOffset = UNITS * 60*60*24*365;
-	return S_OK;
-}
-
-STDMETHODIMP MainPin::SetMaxStreamOffset(REFERENCE_TIME rtMaxOffset)
-{
-	return S_OK;
-}
-
-STDMETHODIMP MainPin::GetStreamOffset(REFERENCE_TIME *prtOffset)
-{
-	return S_OK;
-}
-
-STDMETHODIMP MainPin::SetStreamOffset(REFERENCE_TIME rtOffset)
-{
-	return S_OK;
-}
-
-STDMETHODIMP MainPin::GetLatency(REFERENCE_TIME *prtLatency)
-{
-	CheckPointer(prtLatency, E_POINTER);
-	*prtLatency = FRAME_LEN;
-	return S_OK;
-}*/
-
 HRESULT MainPin::DoBufferProcessingLoop(void) {
 	Command command;
 	IMediaSample *sample;
 	HRESULT result;
-	LARGE_INTEGER nFreq, nBefore, nAfter, nCurrent;
+	LARGE_INTEGER nFreq, nAfter, nCurrent, nAmount;
+	int error;
 	QueryPerformanceFrequency(&nFreq);
-	QueryPerformanceCounter(&nBefore);
+	QueryPerformanceCounter(&nCurrent);
+	error = (int)(nFreq.QuadPart % 20);
+	nAmount.QuadPart = (nFreq.QuadPart - error) / 20;
 	m_iFrameNumber = 0;
 
 	do {
@@ -286,23 +241,29 @@ HRESULT MainPin::DoBufferProcessingLoop(void) {
 			}
 
 			{
-				REFERENCE_TIME rtStart = m_iFrameNumber * FRAME_LEN;
-				REFERENCE_TIME rtStop  = rtStart + FRAME_LEN;
-
-				result = FillBuffer(sample);
-
 				m_iFrameNumber++;
 
+				REFERENCE_TIME rtStart = m_iFrameNumber * FRAME_LEN;
+				REFERENCE_TIME rtStop  = rtStart + FRAME_LEN;
 				sample->SetTime(&rtStart, &rtStop);
+
+				nCurrent.QuadPart += nAmount.QuadPart;
+				if(!(m_iFrameNumber % 20) && m_iFrameNumber)
+					nCurrent.QuadPart += error;
 			}
+
+			QueryPerformanceCounter(&nAfter);
+			if(nAfter.QuadPart>nCurrent.QuadPart)
+				continue;			
+			
 			sample->SetSyncPoint(TRUE);
+			result = FillBuffer(sample);
 
 			if (result == S_OK) {
 				result = Deliver(sample);
 				sample->Release();
-				if (result != S_OK) {
+				if (result != S_OK)
 					return S_OK;
-				}
 			} else if (result == S_FALSE) {
 				sample->Release();
 				DeliverEndOfStream();
@@ -314,11 +275,10 @@ HRESULT MainPin::DoBufferProcessingLoop(void) {
 				return result;
 			}
 
-			nCurrent.QuadPart = nBefore.QuadPart +(m_iFrameNumber * nFreq.QuadPart / 20);
 			QueryPerformanceCounter(&nAfter);
 			if(nAfter.QuadPart>nCurrent.QuadPart)
 				continue;
-			::Sleep(1000*(nCurrent.QuadPart-nAfter.QuadPart)/nFreq.QuadPart);
+			::Sleep((DWORD)(1000*(nCurrent.QuadPart-nAfter.QuadPart)/nFreq.QuadPart));
 		}
 
 		if (command == CMD_RUN || command == CMD_PAUSE) {
