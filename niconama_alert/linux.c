@@ -22,6 +22,8 @@
 static const socklen_t v6size = sizeof(struct sockaddr_in6);
 static const socklen_t v4size = sizeof(struct sockaddr_in);
 
+#define USERID "12612571"
+
 void getinfo(char** addr, char** port, char** tid){
   int sock;
   uint8_t recvdata[128];
@@ -130,16 +132,49 @@ void recieve(char* server, char* port, char* tid) {
   connect(sock, res->ai_addr, res->ai_family == AF_INET6 ? v6size : v4size);
   
   send(sock, thread, strlen(thread) + 1, 0);
+  
+  char buf[512];
+  char liveid[16],communityid[16],userid[16];
+  char *ptr,*ptr2;
+  memset(buf,0,512);
+  memset(userid,0,16);
+  memset(liveid,0,16);
+  memset(communityid,0,16);
 
   while(1) {
     recvlen = recv(sock, &recvdata, 1, 0);
     if(recvlen < 1)
       break;
     if(recvdata == '\0') {
-      putc('\n', stdout);
-    } else {
-      putc(recvdata, stdout);
-    }
+      ptr=strchr(buf,'>');
+      if(ptr!=NULL) {
+        ptr2=strchr(ptr+1,'<');
+        if(ptr2!=NULL) {
+          *(ptr2+1)=0;
+          ptr2=strchr(ptr+1,',');
+          if(ptr2!=NULL) {
+            memcpy(liveid,ptr+1,ptr2-ptr-1);
+            ptr=ptr2;
+            ptr2=strchr(ptr+1,',');
+            if(ptr2!=NULL) {
+              memcpy(communityid,ptr+1,ptr2-ptr-1);
+              ptr=ptr2;
+              ptr2=strchr(ptr+1,'<');
+              if(ptr2!=NULL) {
+                memcpy(userid,ptr+1,ptr2-ptr-1);
+                if(!strcmp(userid,USERID))
+                  printf("UserID:%15s   ComID:%15s   LiveID:%15s\n",userid,communityid,liveid);
+              }
+            }
+          }
+        }
+      }
+      memset(buf,0,512);
+      memset(userid,0,16);
+      memset(liveid,0,16);
+      memset(communityid,0,16);
+    } else
+      buf[strlen(buf)] = recvdata;
   }
 
   close(sock);
