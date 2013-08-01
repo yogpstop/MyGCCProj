@@ -92,14 +92,14 @@ void printcomment(char* server, char* port, char* tid, const long offset) {
           *ptr2=0;
           switch(premium){
           case 2:
-            puts("\x1b[31m");
+            fputs("\x1b[31m",stdout);
             break;
           case 3:
-            puts("\x1b[32m");
+            fputs("\x1b[32m",stdout);
             break;
           case 6:
           case 7:
-            puts("\x1b[34m");
+            fputs("\x1b[34m",stdout);
             break;
           }
           vpos-=offset;
@@ -122,7 +122,7 @@ void printcomment(char* server, char* port, char* tid, const long offset) {
 }
 
 void *getliveinfo(void* liveid){
-  printf("Start print comment in lv%s\n",(char*)liveid);
+  printf("Start print comment in lv%s\n", (char*)liveid);
   int sock;
   uint8_t recvdata;
   ssize_t recvlen;
@@ -144,7 +144,6 @@ void *getliveinfo(void* liveid){
   int xml=0,element=0;
   char tagname[64];
   memset(tagname,0,64);
-  
   char addr[128];
   memset(addr,0,128);
   char port[128];
@@ -201,8 +200,9 @@ void *getliveinfo(void* liveid){
       } else if(recvdata==' '&&(element&TAG)==TAG) {
         if(tagname[0]!=0)
           element|=ATTR;
-      } else if((element&(TAG|ATTR))==TAG) {
-       tagname[strlen(tagname)]=recvdata;
+      } else if((element&TAG)==TAG) {
+      	if((element&ATTR)!=ATTR)
+            tagname[strlen(tagname)]=recvdata;
       } else if((element&ADDR)==ADDR) {
         addr[strlen(addr)]=recvdata;
       } else if((element&PORT)==PORT) {

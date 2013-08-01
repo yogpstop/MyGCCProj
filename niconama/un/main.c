@@ -1,12 +1,12 @@
 extern void getalertdata();
 void *getliveinfo(void*);
 
-extern char *user_session;
+extern void getSession();
 
 int main(int argc, char *argv[]) {
-  user_session = argv[1];
-  if(argc==3)
-    getliveinfo(argv[2]);
+  getSession();
+  if(argc==2)
+    getliveinfo(argv[1]);
   else
     getalertdata();
   return 0;
