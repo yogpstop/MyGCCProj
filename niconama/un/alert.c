@@ -33,7 +33,6 @@ void callback(struct xml *data) {
 					memcpy(userid,ptr+1,ptr2-ptr-1);
 					if(!strcmp(userid,USERID))
 						pthread_create(&tdd, NULL, &getliveinfo, liveid);
-					printf("User:%15s   Com:%15s   Live:%15s\n",userid,communityid,liveid);
 				}
 			}
 		}

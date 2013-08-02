@@ -1,5 +1,7 @@
+#include <pthread.h>
 #include "main.h"
 #include "xml.h"
+#include "gui.h"
 
 char *user_session;
 static char userid[64];
@@ -7,8 +9,11 @@ static int num, premium;
 static char addr[128];
 static char port[128];
 static char tid[128];
-static long ctime;
+static long cmtime;
 static long start_time;
+
+static GtkTreeIter iter;
+static GtkListStore*store;
 
 void callback4(struct xml *data) {
 	if(!strcmp(data->at_n,"user_id")){
@@ -16,7 +21,7 @@ void callback4(struct xml *data) {
 	}else if(!strcmp(data->at_n,"no")){
 		num = atoi(data->at_v);
 	}else if(!strcmp(data->at_n,"date")){
-		ctime = atol(data->at_v);
+		cmtime = atol(data->at_v);
 	}else if(!strcmp(data->at_n,"premium")){
 		premium = atoi(data->at_v);
 	}
@@ -25,7 +30,7 @@ void callback4(struct xml *data) {
 void callback5(struct xml *data) {
 	if(strcmp(data->el_n,".chat"))
 		return;
-	switch(premium){
+	/*switch(premium){
 	case 2:
 		fputs("\x1b[31m",stdout);
 		break;
@@ -36,14 +41,19 @@ void callback5(struct xml *data) {
 	case 7:
 		fputs("\x1b[34m",stdout);
 		break;
-	}
-	ctime=ctime-start_time;
-	printf("(%02d:%02d:%02d)[%d]<%s>%s\x1b[39m\n",(int)(ctime/60/60),(int)((ctime/60)%60),(int)(ctime%60),num,userid,data->el_v);
+	}*/
+	cmtime=cmtime-start_time;
+	char time[32];
+	sprintf(time,"%02d:%02d:%02d",(int)(cmtime/60/60),(int)((cmtime/60)%60),(int)(cmtime%60));
+	gtk_list_store_prepend(store,&iter);
+	gtk_list_store_set(store,&iter,COLUMN_NUM,num,COLUMN_TIME,time,COLUMN_NAME,userid,COLUMN_CHAT,data->el_v,-1);
 	if(!premium==2&&!strcmp(data->el_v,"/disconnect"));
 		//TODO
 }
 
 void printcomment() {
+  pthread_t tdd;
+  pthread_create(&tdd, NULL, &guimain, &store);
   int sock;
   {
     struct addrinfo *res;
