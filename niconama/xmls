@@ -1,0 +1,35 @@
+getplayerstatus.stream.id 放送ID
+getplayerstatus.stream.title 放送タイトル
+getplayerstatus.stream.description 放送詳細冒頭
+getplayerstatus.stream.provider_type (official|channel|community)
+getplayerstatus.stream.default_community コミュID
+getplayerstatus.stream.owner_id 主のユーザーID
+getplayerstatus.stream.owner_name 主のユーザー名
+getplayerstatus.stream.is_reserved 予約番組かどうか
+getplayerstatus.stream.watch_count 現在の累計来場者数
+getplayerstatus.stream.comment_count 現在の総コメント数
+getplayerstatus.stream.base_time 放送の基準となる時刻(UNIX)
+getplayerstatus.stream.open_time 放送の開場時刻(UNIX)
+getplayerstatus.stream.start_time 放送の開演時刻(UNIX)
+getplayerstatus.stream.end_time 放送の終了予定時刻(UNIX)
+getplayerstatus.stream.twitter_tag 主が設定したツイッタータグ
+getplayerstatus.stream.archive 今見てるのがタイムシフトか否か
+getplayerstatus.stream.press 広告関連(要詳細)
+getplayerstatus.stream.contents_list.contents 録画時に必要なパラメータ
+getplayerstatus.user.room_label 部屋名(放送ID,"立ち見A列","立ち見B列","立ち見C列")
+getplayerstatus.user.room_seetno 座席番号
+getplayerstatus.rtmp.url 録画時に必要なパラメータ
+getplayerstatus.rtmp.ticket 録画時に(ry
+getplayerstatus.ms.addr コメントサーバーのアドレス
+getplayerstatus.ms.port コメントサーバーのポート番号
+getplayerstatus.ms.thread コメントサーバーのスレッドID
+getplayerstatus.marquee.category カテゴリ名
+
+getpublishstatus.rtmp.url 配信時に必要なパラメータ
+getpublishstatus.rtmp.ticket 配信時に必要なパラメータ
+getpublishstatus.rtmp.stream 配信時に必要なパラメータ
+getpublishstatus.rtmp.bitrate 現在の最大可能ビットレート
+getpublishstatus.stream.token 運営コマンドトークン
+getpublishstatus.stream.id 放送ID
+
+getpublishstatus.rtmp.url?getpublishstatus.rtmp.ticket/getpublishstatus.rtmp.stream

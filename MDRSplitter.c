@@ -32,8 +32,7 @@ int main(int argc,char *argv[]){
 	
 	mkdir(argv[1],S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 	
-	ptr = 0x2600;//ファイルインデックスのオフセット
-	for(;ptr<0x3E00;ptr+=0x20){
+	for(ptr=0x2600;ptr<0x3E00;ptr+=0x20){
 		//ファイル名1文字目がNULL,ファイルサイズが0
 		if(s[ptr]==0 || !(s[ptr+0x1C]||s[ptr+0x1D]||s[ptr+0x1E]||s[ptr+0x1F]))
 			continue;

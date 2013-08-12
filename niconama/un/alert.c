@@ -2,11 +2,9 @@
 #include "main.h"
 #include "xml.h"
 
-extern void *getliveinfo(void*);
-
 #define USERID "12612571"
 
-static pthread_t tdd;
+//static pthread_t tdd;
 static char addr[128];
 static char port[128];
 static char tid[128];
@@ -31,8 +29,8 @@ void callback(struct xml *data) {
 				ptr2=strchr(ptr+1,0);
 				if(ptr2!=NULL&&(ptr2-ptr)<17) {
 					memcpy(userid,ptr+1,ptr2-ptr-1);
-					if(!strcmp(userid,USERID))
-						pthread_create(&tdd, NULL, &getliveinfo, liveid);
+					//if(!strcmp(userid,USERID))
+						//pthread_create(&tdd, NULL, &getliveinfo, liveid);
 				}
 			}
 		}
@@ -77,11 +75,11 @@ void processalert() {
 }
 
 void callback2(struct xml *data) {
-	if(!strcmp(data->el_n,".getalertstatus.ms.addr")){
+	if(!strcmp(data->el_n,"getalertstatus.ms.addr")){
 		strcpy(addr,data->el_v);
-	} else if(!strcmp(data->el_n,".getalertstatus.ms.port")) {
+	} else if(!strcmp(data->el_n,"getalertstatus.ms.port")) {
 		strcpy(port,data->el_v);
-	} else if(!strcmp(data->el_n,".getalertstatus.ms.thread")) {
+	} else if(!strcmp(data->el_n,"getalertstatus.ms.thread")) {
 		strcpy(tid,data->el_v);
 	}
 }

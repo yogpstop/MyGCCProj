@@ -1,0 +1,39 @@
+form id="esf"
+	input type="text" name="title"
+	textarea name="description"
+	select name=id="default_community"
+		option value~~
+	select name="tags[]" id="_tag"
+		option value~~
+	input type="text" name=id="livetagsX"
+	input type="checkbox" name=id="taglockX" value="ロックする"
+	input type="checkbox" name=id="livetaglockall" value="ロックする"
+	input name="tags[]" id="face" type="checkbox" value="顔出し"
+	input name="tags[]" id="totu" type="checkbox" value="凸待ち"
+	input name="tags[]" id="cruise" type="checkbox" value="クルーズ待ち"
+	input type="checkbox" name=id="is_charge" value=1
+	select name=id="reserve_start_ymd"
+		option value~~
+	select name=id="reserve_start_h"
+		option value~~
+	select name=id="reserve_start_i"
+		option value~~
+	select name=id="reserve_stream_time"
+		option value~~
+	input type="checkbox" name="public_status" value="2" id="community_only"
+	input type="radio" name=id="timeshift_enabled" value="1"
+	input type="radio" name="timeshift_enabled" value="0" id="timeshift_disabled"
+	input type="radio" name="twitter_disabled" value="0" id="id_twitter_enabled"
+	input type="radio" name="twitter_disabled" value="1" id="id_twitter_disabled"
+	input type="text" name=id="input_twitter_tag"
+	input type="radio" name="ad_enable" value="0"
+	input type="radio" name="ad_enable" value="1"
+	input type="radio" name="ichiba_type" value="1"
+	input type="radio" name="ichiba_type" value="0"
+	input type="text" name="rights[X][code]"
+	input type="text" name="rights[X][title]"
+	input type="text" name="rights[X][artist]"
+	input type="text" name="rights[X][lyric]"
+	input type="text" name="rights[X][composer]"
+	input type="text" name="rights[X][time]"
+	input name="kiyaku" value="true"

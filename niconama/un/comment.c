@@ -1,70 +1,96 @@
 #include <pthread.h>
+#include <time.h>
 #include "main.h"
 #include "xml.h"
 #include "gui.h"
+#include "xml_struct.h"
 
-char *user_session;
-static char userid[64];
-static int num, premium;
-static char addr[128];
-static char port[128];
-static char tid[128];
-static long cmtime;
-static long start_time;
+#define C_STR(var); if(!((struct chat_gps*)data->user)->chat.var) { \
+			((struct chat_gps*)data->user)->chat.var = malloc(strlen(data->at_v)+1); \
+			if(((struct chat_gps*)data->user)->chat.var) \
+				strcpy(((struct chat_gps*)data->user)->chat.var,data->at_v); \
+		}
+#define C_INT(var); ((struct chat_gps*)data->user)->chat.var = atoi(data->at_v);
+
+#define C_LNG(var); ((struct chat_gps*)data->user)->chat.var = atol(data->at_v);
+		
+#define IF_C_FREE(var); if(((struct chat_gps*)data->user)->chat.var) { \
+			free(((struct chat_gps*)data->user)->chat.var); \
+		}
+
+struct chat {
+	time_t date;
+	char* command;
+	int num;
+	int premium;
+	char* userid;
+	int score;
+};
+
+struct chat_gps {
+	struct getplayerstatus* gps;
+	struct chat chat;
+};
 
 static GtkTreeIter iter;
 static GtkListStore*store;
 
-void callback4(struct xml *data) {
-	if(!strcmp(data->at_n,"user_id")){
-		strcpy(userid,data->at_v);
-	}else if(!strcmp(data->at_n,"no")){
-		num = atoi(data->at_v);
-	}else if(!strcmp(data->at_n,"date")){
-		cmtime = atol(data->at_v);
-	}else if(!strcmp(data->at_n,"premium")){
-		premium = atoi(data->at_v);
+static void callback4(struct xml *data) {
+	if(!strcmp(data->at_n,"user_id")) {
+		C_STR(userid);
+	} else if(!strcmp(data->at_n,"mail")) {
+		C_STR(command);
+	} else if(!strcmp(data->at_n,"no")) {
+		C_INT(num);
+	} else if(!strcmp(data->at_n,"premium")) {
+		C_INT(premium);
+	} else if(!strcmp(data->at_n,"score")) {
+		C_INT(score);
+	} else if(!strcmp(data->at_n,"date")) {
+		C_LNG(date);
 	}
 }
 
-void callback5(struct xml *data) {
-	if(strcmp(data->el_n,".chat"))
-		return;
-	/*switch(premium){
-	case 2:
-		fputs("\x1b[31m",stdout);
-		break;
-	case 3:
-		fputs("\x1b[32m",stdout);
-		break;
-	case 6:
-	case 7:
-		fputs("\x1b[34m",stdout);
-		break;
-	}*/
-	cmtime=cmtime-start_time;
-	char time[32];
-	sprintf(time,"%02d:%02d:%02d",(int)(cmtime/60/60),(int)((cmtime/60)%60),(int)(cmtime%60));
-	gtk_list_store_prepend(store,&iter);
-	gtk_list_store_set(store,&iter,COLUMN_NUM,num,COLUMN_TIME,time,COLUMN_NAME,userid,COLUMN_CHAT,data->el_v,-1);
-	if(!premium==2&&!strcmp(data->el_v,"/disconnect"));
-		//TODO
+static void callback5(struct xml *data) {
+	if(!strcmp(data->el_n,"chat")) {
+		/*switch(premium){
+		case 2:
+			fputs("\x1b[31m",stdout);
+			break;
+		case 3:
+			fputs("\x1b[32m",stdout);
+			break;
+		case 6:
+		case 7:
+			fputs("\x1b[34m",stdout);
+			break;
+		}*/
+		((struct chat_gps*)data->user)->chat.date=((struct chat_gps*)data->user)->chat.date-((struct chat_gps*)data->user)->gps->start_time;
+		char time[32];
+		sprintf(time,"%02d:%02d:%02d",(int)(((struct chat_gps*)data->user)->chat.date/60/60),(int)((((struct chat_gps*)data->user)->chat.date/60)%60),(int)(((struct chat_gps*)data->user)->chat.date%60));
+		gtk_list_store_prepend(store,&iter);
+		gtk_list_store_set(store,&iter,COLUMN_NUM,((struct chat_gps*)data->user)->chat.num,COLUMN_TIME,time,COLUMN_NAME,((struct chat_gps*)data->user)->chat.userid,COLUMN_CHAT,data->el_v,-1);
+		if(!((struct chat_gps*)data->user)->chat.premium==2&&!strcmp(data->el_v,"/disconnect"));
+			//TODO
+	}
+	IF_C_FREE(userid);
+	IF_C_FREE(command);
+	memset(&((struct chat_gps*)data->user)->chat,0,sizeof(struct chat));
 }
 
-void printcomment() {
+void printcomment(struct getplayerstatus* gps) {
   pthread_t tdd;
   pthread_create(&tdd, NULL, &guimain, &store);
   int sock;
   {
     struct addrinfo *res;
-    getaddrinfo(addr, NULL, NULL, &res);
-    char thread[100] = "<thread thread=\"";
-    strcat(thread, tid);
-    strcat(thread, "\" res_from=\"-1\" version=\"20061206\"/>");
+    getaddrinfo(gps->ms_addr, NULL, NULL, &res);
+    char thread[100];
+    sprintf(thread,"<thread thread=\"%ld\" res_from=\"-1\" version=\"20061206\" scores=\"1\" />",gps->ms_thread);
     if(res->ai_family == AF_INET6) {
-      ((struct sockaddr_in6 *) res->ai_addr)->sin6_port = htons((uint16_t) atoi(port));
+      ((struct sockaddr_in6 *) res->ai_addr)->sin6_port = htons(gps->ms_port);
     } else {
-      ((struct sockaddr_in *) res->ai_addr)->sin_port = htons((uint16_t) atoi(port));
+      ((struct sockaddr_in *) res->ai_addr)->sin_port = htons(gps->ms_port);
     }
     sock = socket(res->ai_family, SOCK_STREAM, 0);
     connect(sock, res->ai_addr, res->ai_family == AF_INET6 ? v6size : v4size);
@@ -76,11 +102,14 @@ void printcomment() {
   ssize_t recvlen;
   
   struct xml data;
+  struct chat_gps cdata;
   memset(&data,0,sizeof(struct xml));
+  memset(&cdata,0,sizeof(struct chat_gps));
+  cdata.gps=gps;
   data.attr=callback4;
   data.tag=callback5;
+  data.user=&cdata;
   
-  memset(userid,0,64);
   while(1) {
     recvlen = recv(sock, &recvdata, 1, 0);
     if(recvlen < 1)
@@ -88,63 +117,5 @@ void printcomment() {
     if(recvdata != '\0')
       next(recvdata,&data);
   }
-
   close(sock);
-}
-
-void callback3(struct xml *data) {
-	if(!strcmp(data->el_n,".getplayerstatus.ms.addr")){
-		strcpy(addr,data->el_v);
-	} else if(!strcmp(data->el_n,".getplayerstatus.ms.port")) {
-		strcpy(port,data->el_v);
-	} else if(!strcmp(data->el_n,".getplayerstatus.ms.thread")) {
-		strcpy(tid,data->el_v);
-	} else if(!strcmp(data->el_n,".getplayerstatus.stream.start_time")) {
-		start_time=atol(data->el_v);
-	}
-}
-
-void *getliveinfo(void* liveid){
-  printf("Start print comment in lv%s\n", (char*)liveid);
-  int sock;
-  {
-    struct addrinfo *res;
-    static char thread[200] = "GET /api/getplayerstatus?v=lv";
-    strcat(thread, (char*)liveid);
-    strcat(thread, " HTTP/1.1\r\nHost: live.nicovideo.jp\r\nCookie: user_session=");
-    strcat(thread, user_session);
-    strcat(thread, "\r\n\r\n");
-    getaddrinfo("live.nicovideo.jp", "http", NULL, &res);
-    sock = socket(res->ai_family, SOCK_STREAM, 0);
-    connect(sock, res->ai_addr, res->ai_family == AF_INET6 ? v6size : v4size);
-    send(sock, thread, strlen(thread), 0);
-    freeaddrinfo(res);
-  }
-  
-  uint8_t recvdata;
-  ssize_t recvlen;
-  
-  struct xml data;
-  memset(&data,0,sizeof(struct xml));
-  data.tag=callback3;
-
-  memset(addr,0,128);
-  memset(port,0,128);
-  memset(tid,0,128);
-  int http=0;
-  while(1) {
-    recvlen = recv(sock, &recvdata, 1, 0);
-    if(recvlen < 1)
-      break;
-    if(http>1)
-      next(recvdata,&data);
-    else if(recvdata == '\n')
-      http++;
-    else if(recvdata != '\r')
-      http = 0;
-  }
-  close(sock);
-  printcomment();
-  free(liveid);
-  return NULL;
 }

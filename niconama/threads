@@ -1,0 +1,8 @@
+MainThread(on boot, check MyStreaming, execute Comment,Streaming)
+CommentXMLThread(s)(execute Reserve)
+AlertXMLThread(execute Comment,Streaming)
+StreamingThread
+	FFmpegProcess
+VideoMixThread
+	ChildVideoMixThread(s)
+AudioMixThread

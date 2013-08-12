@@ -20,6 +20,7 @@ struct xml {
 	int fl;
 	void(*tag)(struct xml*);
 	void(*attr)(struct xml*);
+	void *user;
 };
 
 void next(char, struct xml*);

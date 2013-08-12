@@ -4,7 +4,7 @@
 void next(char c, struct xml *data) {
 	if(c=='>' && (data->fl&IN_TAG) != 0) {
 		if((data->fl&IN_DECL) == 0) {
-			if(data->pv=='/'){
+			if(data->pv=='/') {
 				if((data->fl&IN_ATTR_VAL_EMP)!=0)
     				*(strchr(data->at_v,0)-1)=0;
     			if((data->fl&IN_ATTR_NAME)!=0)
@@ -37,7 +37,8 @@ void next(char c, struct xml *data) {
 		if(data->tag)
 			data->tag(data);
 		data->fl=IN_TAG_NAME;
-		*strchr(data->el_n,0)='.';
+		if(strlen(data->el_n))
+			*strchr(data->el_n,0)='.';
 		data->pv=0;
 		memset(data->el_v,0,512);
 	} else if(c=='=' && (data->fl&IN_ATTR_NAME)!=0) {
@@ -46,15 +47,13 @@ void next(char c, struct xml *data) {
 	} else if(c=='"' && (data->fl&IN_ATTR_VAL_QUOT)!=0) {
 		data->fl=(data->fl|IN_ATTR_VAL_EMP)&(0xFFFF^IN_ATTR_VAL_QUOT);
 		data->pv='"';
-	} else if(c=='"' && (data->fl&IN_ATTR_VAL_EMP)!=0 && data->pv==0) {
+	} else if(c=='"' && (data->fl&IN_ATTR_VAL_EMP)!=0) {
 		data->fl=(data->fl|IN_ATTR_VAL_QUOT)&(0xFFFF^IN_ATTR_VAL_EMP);
-		data->pv='"';
 	} else if(c=='\'' && (data->fl&IN_ATTR_VAL_APOS)!=0) {
 		data->fl=(data->fl|IN_ATTR_VAL_EMP)&(0xFFFF^IN_ATTR_VAL_APOS);
 		data->pv='\'';
-	} else if(c=='\'' && (data->fl&IN_ATTR_VAL_EMP)!=0 && data->pv==0) {
+	} else if(c=='\'' && (data->fl&IN_ATTR_VAL_EMP)!=0) {
 		data->fl=(data->fl|IN_ATTR_VAL_APOS)&(0xFFFF^IN_ATTR_VAL_EMP);
-		data->pv='\'';
 	} else if(c==' ' && (data->fl&(OUT_QUOTE))!=0) {
 		if(data->pv!=0) {
 			if ((data->fl&IN_TAG_NAME)==0) {
@@ -64,7 +63,6 @@ void next(char c, struct xml *data) {
 				memset(data->at_v,0,128);
 			}
 			data->fl=(data->fl|IN_ATTR_NAME)&(0xFFFF^(IN_TAG_NAME|IN_ATTR_VAL_EMP));
-			data->pv=0;
 		}
 	} else if(c=='/' && (data->fl&IN_TAG_NAME)!=0 && data->pv==0) {
 		data->fl|=IN_ENDTAG;

@@ -2,7 +2,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
-extern char *user_session;
+char *user_session;
 int exec_callback(void *arg, int argc, char **argv, char **column) {
   user_session = malloc(strlen(argv[0])+1);
   strcpy(user_session,argv[0]);
