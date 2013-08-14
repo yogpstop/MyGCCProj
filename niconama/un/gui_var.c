@@ -11,6 +11,7 @@ GtkWidget *mainNotebook, *mainToolbarNextReserveLabel,
 	*mainToolbarNextReserveButton,
 	*mainToolbarDoReserveButton,
 	*mainToolbarFFmpegResendButton,
+	*mainToolbarPresetList,
 	*commentEB, *commentL,
 	*commentBox, *commentHB1,
 	*commentCurrentEB, *commentCurrentL,
@@ -71,10 +72,10 @@ GtkWidget *mainNotebook, *mainToolbarNextReserveLabel,
 	*reserveTimeshift, *reserveAdsense,
 	*reserveIchiba, *reserveTwitterBox,
 	*reserveTwitter, *reserveTwitterTags,
-	*reserveTagBox, *reserveTag0,
-	*reserveTag1, *reserveTag2,
-	*reserveTag3, *reserveTag4,
-	*reserveTag5, *reserveTag6,
+	*reserveTag0, *reserveTag1, *reserveTB3,
+	*reserveTag2, *reserveTB1, *reserveTB4,
+	*reserveTag3, *reserveTag4, *reserveTB2,
+	*reserveTag5, *reserveTag6, *reserveTB5,
 	*reserveTag7, *reserveTag8,
 	*reserveTag9, *reserveMusic, *reserveMusicLabel,
 	*commentSettingEB, *commentSettingL,
@@ -99,7 +100,7 @@ GtkWidget *mainNotebook, *mainToolbarNextReserveLabel,
 	*handleNameBox, *handleNameHB1,
 	*handleNameRawList, *handleNameVB1,
 	*handleName184Season, *handleName184List,
-	*handleNameHB2, *handleNameVB2,
+	*handleNameVB2,
 	*handleNameID, *handleNameHandle,
 	*handleNameVB3, *handleNameAdd, *handleNameDeleteLabel,
 	*handleNameDelete, *handleNameAddLabel;
@@ -127,7 +128,7 @@ void create(){
 	mainToolbarFFmpegResendButton=gtk_button_new();
 	mainToolbarFFmpegResendLabel=gtk_label_new("映像再送");
 	mainToolbarPreset=gtk_tool_item_new();
-	
+	mainToolbarPresetList=gtk_combo_box_new();
 	mainNotebook=gtk_notebook_new();
 	commentEB=gtk_event_box_new();
 	commentL=gtk_label_new("コメント");
@@ -200,8 +201,8 @@ void create(){
 	alertDisconnectLabel=gtk_label_new("切断");
 	multimediaEB=gtk_event_box_new();
 	multimediaL=gtk_label_new("マルチメディア");
-	multimediaBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
-	multimediaHB1=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	multimediaBox=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	multimediaHB1=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
 	multimediaPreview=gtk_image_new();
 	multimediaVideoSourceList=gtk_tree_view_new();
 	multimediaVideoSourceListStore=gtk_list_store_new(1,G_TYPE_STRING);//TODO
@@ -213,7 +214,7 @@ void create(){
 
 	multimediaVideoMenuBarDelete=gtk_menu_item_new();
 	multimediaVideoMenuBarDeleteLabel=gtk_label_new("削除");
-	multimediaVB1=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	multimediaVB1=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	multimediaPresetList=gtk_combo_box_new();
 	multimediaPresetListStore=gtk_list_store_new(1,G_TYPE_STRING);
 	multimediaPresetName=gtk_entry_new();
@@ -221,10 +222,10 @@ void create(){
 	multimediaPresetAddLabel=gtk_label_new("追加");
 	multimediaPresetDelete=gtk_button_new();
 	multimediaPresetDeleteLabel=gtk_label_new("削除");
-	multimediaHB2=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
-	multimediaAudioMuxerBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	multimediaHB2=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	multimediaAudioMuxerBox=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 
-	multimediaVB2=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	multimediaVB2=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	multimediaAudioAdd=gtk_button_new();
 	multimediaAudioAddLabel=gtk_label_new("追加");
 	multimediaAudioDelete=gtk_button_new();
@@ -233,8 +234,8 @@ void create(){
 	multimediaAdvancedSettingsLabel=gtk_label_new("拡張設定");
 	reserveEB=gtk_event_box_new();
 	reserveL=gtk_label_new("枠取り");
-	reserveBox=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
-	reserveVB1=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	reserveBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	reserveVB1=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	reservePresetList=gtk_combo_box_new();
 	reservePresetListStore=gtk_list_store_new(1,G_TYPE_STRING);
 	reservePresetName=gtk_entry_new();
@@ -245,26 +246,30 @@ void create(){
 	reserveNextNotify=gtk_check_button_new_with_label("次枠通知");
 	reserveNextNotifyEdit=gtk_entry_new();
 	reserveTitle=gtk_entry_new();
-	reserveVB2=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	reserveVB2=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	reserveDescription=gtk_text_view_new();
-	reserveHB1=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	reserveHB1=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
 	reserveCommunityList=gtk_combo_box_new();
 	reserveCommunityListStore=gtk_list_store_new(1,G_TYPE_STRING);
-	reserveVB3=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	reserveVB3=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	reserveCategoryList=gtk_combo_box_new();
 	reserveCategoryListStore=gtk_list_store_new(1,G_TYPE_STRING);
 	reserveFace=gtk_check_button_new_with_label("顔出し");
 	reserveCall=gtk_check_button_new_with_label("凸待ち");
 	reserveCruise=gtk_check_button_new_with_label("クルーズ待ち");
-	reserveVB4=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	reserveVB4=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	reserveCommunityOnly=gtk_check_button_new_with_label("コミュ限");
 	reserveTimeshift=gtk_check_button_new_with_label("タイムシフト");
 	reserveAdsense=gtk_check_button_new_with_label("広告");
 	reserveIchiba=gtk_check_button_new_with_label("市場");
-	reserveTwitterBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	reserveTwitterBox=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	reserveTwitter=gtk_check_button_new_with_label("Twitter");
 	reserveTwitterTags=gtk_entry_new();
-	reserveTagBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	reserveTB1=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	reserveTB2=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	reserveTB3=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	reserveTB4=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	reserveTB5=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	reserveTag0=gtk_entry_new();
 	reserveTag1=gtk_entry_new();
 	reserveTag2=gtk_entry_new();
@@ -320,11 +325,10 @@ void create(){
 	handleName184Season=gtk_label_new(NULL);
 	handleName184List=gtk_tree_view_new();
 	handleName184ListStore=gtk_list_store_new(2,G_TYPE_STRING,G_TYPE_STRING);
-	handleNameHB2=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
-	handleNameVB2=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	handleNameVB2=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	handleNameID=gtk_entry_new();
 	handleNameHandle=gtk_entry_new();
-	handleNameVB3=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	handleNameVB3=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	handleNameAdd=gtk_button_new();
 	handleNameAddLabel=gtk_label_new("追加");
 	handleNameDelete=gtk_button_new();
@@ -342,11 +346,12 @@ void create(){
 	gtk_container_add(GTK_CONTAINER(mainToolbarFFmpegResend),mainToolbarFFmpegResendButton);
 	gtk_container_add(GTK_CONTAINER(mainToolbarFFmpegResendButton),mainToolbarFFmpegResendLabel);
 	gtk_toolbar_insert(GTK_TOOLBAR(mainToolbar),mainToolbarPreset,3);
-	gtk_container_add(GTK_CONTAINER(mainToolbarPreset),multimediaPresetList);
+	gtk_container_add(GTK_CONTAINER(mainToolbarPreset),mainToolbarPresetList);
+	gtk_combo_box_set_model(GTK_COMBO_BOX(mainToolbarPresetList),GTK_TREE_MODEL(multimediaPresetListStore));
 	gtk_box_pack_start(GTK_BOX(mainBox),mainNotebook,TRUE,TRUE,0);
 
-	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),commentBox,commentEB);
-	gtk_container_add(GTK_CONTAINER(commentEB),commentL);
+	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),commentBox,commentL);
+	//gtk_container_add(GTK_CONTAINER(commentEB),commentL);
 	gtk_box_pack_start(GTK_BOX(commentBox),commentHB1,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(commentHB1),commentCurrentEB,FALSE,FALSE,0);
 	gtk_container_add(GTK_CONTAINER(commentCurrentEB),commentCurrentL);
@@ -379,14 +384,169 @@ void create(){
 	gtk_box_pack_start(GTK_BOX(commentVB3),commentSendBSP,FALSE,FALSE,0);
 	gtk_container_add(GTK_CONTAINER(commentSendBSP),commentSendBSPLabel);
 
-	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),ffmpegBox,ffmpegEB);
-	gtk_container_add(GTK_CONTAINER(ffmpegEB),ffmpegL);
+	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),ffmpegBox,ffmpegL);
+	//gtk_container_add(GTK_CONTAINER(ffmpegEB),ffmpegL);
 	gtk_box_pack_start(GTK_BOX(ffmpegBox),ffmpegLog,TRUE,TRUE,0);
 	gtk_box_pack_start(GTK_BOX(ffmpegBox),ffmpegHB1,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(ffmpegHB1),ffmpegStart,FALSE,FALSE,0);
 	gtk_container_add(GTK_CONTAINER(ffmpegStart),ffmpegStartLabel);
 	gtk_box_pack_start(GTK_BOX(ffmpegHB1),ffmpegStop,FALSE,FALSE,0);
 	gtk_container_add(GTK_CONTAINER(ffmpegStop),ffmpegStopLabel);
+
+	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),alertBox,alertL);
+	//gtk_container_add(GTK_CONTAINER(alertEB),alertL);
+	gtk_box_pack_start(GTK_BOX(alertBox),alertFavorites,TRUE,TRUE,0);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(alertFavorites),GTK_TREE_MODEL(alertFavoritesStore));
+	gtk_box_pack_start(GTK_BOX(alertBox),alertVB1,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertIDEdit,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertIDType,FALSE,FALSE,0);
+	gtk_combo_box_set_model(GTK_COMBO_BOX(alertIDType),GTK_TREE_MODEL(alertIDTypeStore));
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(alertAdd),alertAddLabel);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(alertDelete),alertDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertReconnect,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(alertReconnect),alertReconnectLabel);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertStatus,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertServerName,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertServerPort,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertServerThread,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertLastUpdateTime,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertUserID,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertConnect,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(alertConnect),alertConnectLabel);
+	gtk_box_pack_start(GTK_BOX(alertVB1),alertDisconnect,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(alertDisconnect),alertDisconnectLabel);
+	
+	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),multimediaBox,multimediaL);
+	//gtk_container_add(GTK_CONTAINER(multimediaEB),multimediaL);
+	gtk_box_pack_start(GTK_BOX(multimediaBox),multimediaHB1,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(multimediaHB1),multimediaPreview,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(multimediaHB1),multimediaVideoSourceList,TRUE,TRUE,0);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(multimediaVideoSourceList),GTK_TREE_MODEL(multimediaVideoSourceListStore));
+	gtk_box_pack_start(GTK_BOX(multimediaHB1),multimediaVideoMenuBar,FALSE,FALSE,0);
+	gtk_menu_shell_append(GTK_MENU_SHELL(multimediaVideoMenuBar),multimediaVideoMenuBarAdd);
+	gtk_container_add(GTK_CONTAINER(multimediaVideoMenuBarAdd),multimediaVideoMenuBarAddLabel);
+	gtk_menu_item_set_submenu(GTK_MENU_ITEM(multimediaVideoMenuBarAdd),multimediaVideoMenuBarAddMenu);
+	gtk_menu_shell_append(GTK_MENU_SHELL(multimediaVideoMenuBar),multimediaVideoMenuBarDelete);
+	gtk_container_add(GTK_CONTAINER(multimediaVideoMenuBarDelete),multimediaVideoMenuBarDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(multimediaHB1),multimediaVB1,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(multimediaVB1),multimediaPresetList,FALSE,FALSE,0);
+	gtk_combo_box_set_model(GTK_COMBO_BOX(multimediaPresetList),GTK_TREE_MODEL(multimediaPresetListStore));
+	gtk_box_pack_start(GTK_BOX(multimediaVB1),multimediaPresetName,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(multimediaVB1),multimediaPresetAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(multimediaPresetAdd),multimediaPresetAddLabel);
+	gtk_box_pack_start(GTK_BOX(multimediaVB1),multimediaPresetDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(multimediaPresetDelete),multimediaPresetDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(multimediaBox),multimediaHB2,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(multimediaHB2),multimediaAudioMuxerBox,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(multimediaHB2),multimediaVB2,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(multimediaVB2),multimediaAudioAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(multimediaAudioAdd),multimediaAudioAddLabel);
+	gtk_box_pack_start(GTK_BOX(multimediaVB2),multimediaAudioDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(multimediaAudioDelete),multimediaAudioDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(multimediaHB2),multimediaAdvancedSettings,FALSE,FALSE,0);
+	gtk_frame_set_label_widget(GTK_FRAME(multimediaAdvancedSettings),multimediaAdvancedSettingsLabel);
+
+	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),reserveBox,reserveL);
+	//gtk_container_add(GTK_CONTAINER(reserveEB),reserveL);
+	gtk_box_pack_start(GTK_BOX(reserveBox),reserveVB1,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB1),reservePresetList,FALSE,FALSE,0);
+	gtk_combo_box_set_model(GTK_COMBO_BOX(reservePresetList),GTK_TREE_MODEL(reservePresetListStore));
+	gtk_box_pack_start(GTK_BOX(reserveVB1),reservePresetName,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB1),reservePresetAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(reservePresetAdd),reservePresetAddLabel);
+	gtk_box_pack_start(GTK_BOX(reserveVB1),reservePresetDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(reservePresetDelete),reservePresetDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(reserveVB1),reserveNextNotify,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB1),reserveNextNotifyEdit,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveBox),reserveTitle,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveBox),reserveVB2,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB2),reserveDescription,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB2),reserveHB1,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveCommunityList,FALSE,FALSE,0);
+	gtk_combo_box_set_model(GTK_COMBO_BOX(reserveCommunityList),GTK_TREE_MODEL(reserveCommunityListStore));
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveVB3,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB3),reserveCategoryList,FALSE,FALSE,0);
+	gtk_combo_box_set_model(GTK_COMBO_BOX(reserveCategoryList),GTK_TREE_MODEL(reserveCategoryListStore));
+	gtk_box_pack_start(GTK_BOX(reserveVB3),reserveFace,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB3),reserveCall,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB3),reserveCruise,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveVB4,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB4),reserveCommunityOnly,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB4),reserveTimeshift,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB4),reserveAdsense,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveVB4),reserveIchiba,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveTwitterBox,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTwitterBox),reserveTwitter,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTwitterBox),reserveTwitterTags,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveTB1,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveTB2,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveTB3,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveTB4,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveTB5,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB1),reserveTag0,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB1),reserveTag1,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB2),reserveTag2,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB2),reserveTag3,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB3),reserveTag4,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB3),reserveTag5,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB4),reserveTag6,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB4),reserveTag7,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB5),reserveTag8,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveTB5),reserveTag9,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(reserveHB1),reserveMusic,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(reserveMusic),reserveMusicLabel);
+	
+	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),commentSettingBox,commentSettingL);
+	//gtk_container_add(GTK_CONTAINER(commentSettingEB),commentSettingL);
+	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingHB1,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB1),commentSettingNGUsers,TRUE,TRUE,0);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(commentSettingNGUsers),GTK_TREE_MODEL(commentSettingNGUsersStore));
+	gtk_box_pack_start(GTK_BOX(commentSettingHB1),commentSettingNGComments,TRUE,TRUE,0);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(commentSettingNGComments),GTK_TREE_MODEL(commentSettingNGCommentsStore));
+	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingHB2,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB2),commentSettingNGEdit,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB2),commentSettingVB1,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingVB1),commentSettingHB3,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB3),commentSettingNGUserAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingNGUserAdd),commentSettingNGUserAddLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB3),commentSettingNGUserDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingNGUserDelete),commentSettingNGUserDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingVB1),commentSettingHB4,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB4),commentSettingNGCommentAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingNGCommentAdd),commentSettingNGCommentAddLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB4),commentSettingNGCommentDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingNGCommentDelete),commentSettingNGCommentDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingResponseList,TRUE,TRUE,0);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(commentSettingResponseList),GTK_TREE_MODEL(commentSettingResponseListStore));
+	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingHB5,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB5),commentSettingVB2,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingVB2),commentSettingQuestion,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingVB2),commentSettingResponse,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB5),commentSettingVB3,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingVB3),commentSettingResponseAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingResponseAdd),commentSettingResponseAddLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingVB3),commentSettingResponseDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingResponseDelete),commentSettingResponseDeleteLabel);
+	
+	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),handleNameBox,handleNameL);
+	//gtk_container_add(GTK_CONTAINER(handleNameEB),handleNameL);
+	gtk_box_pack_start(GTK_BOX(handleNameBox),handleNameHB1,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameHB1),handleNameRawList,TRUE,TRUE,0);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(handleNameRawList),GTK_TREE_MODEL(handleNameRawListStore));
+	gtk_box_pack_start(GTK_BOX(handleNameHB1),handleNameVB1,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameVB1),handleName184Season,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameVB1),handleName184List,TRUE,TRUE,0);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(handleName184List),GTK_TREE_MODEL(handleName184ListStore));
+	gtk_box_pack_start(GTK_BOX(handleNameBox),handleNameVB2,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameVB2),handleNameID,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameVB2),handleNameHandle,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameBox),handleNameVB3,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameVB3),handleNameAdd,TRUE,TRUE,0);
+	gtk_container_add(GTK_CONTAINER(handleNameAdd),handleNameAddLabel);
+	gtk_box_pack_start(GTK_BOX(handleNameVB3),handleNameDelete,TRUE,TRUE,0);
+	gtk_container_add(GTK_CONTAINER(handleNameDelete),handleNameDeleteLabel);
 
 	g_signal_connect(G_OBJECT(mainWindow),"destroy",G_CALLBACK(gtk_main_quit),NULL);
 	gtk_widget_show_all(mainWindow);
