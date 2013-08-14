@@ -32,9 +32,9 @@ GtkWidget *mainNotebook, *mainToolbarNextReserveLabel,
 	*ffmpegStop, *alertEB, *alertL, *alertBox,
 	*ffmpegStartLabel, *ffmpegStopLabel,
 	*alertFavorites, *alertVB1,
-	*alertIDEdit, *alertIDType, *alertReconnectLabel,
+	*alertIDEdit, *alertIDType,
 	*alertAdd, *alertDelete, *alertAddLabel,
-	*alertReconnect, *alertStatus, *alertDeleteLabel,
+	*alertStatus, *alertDeleteLabel,
 	*alertServerName, *alertServerPort,
 	*alertServerThread, *alertLastUpdateTime,
 	*alertUserID, *alertConnect, *alertConnectLabel,
@@ -79,31 +79,30 @@ GtkWidget *mainNotebook, *mainToolbarNextReserveLabel,
 	*reserveTag7, *reserveTag8,
 	*reserveTag9, *reserveMusic, *reserveMusicLabel,
 	*commentSettingEB, *commentSettingL,
-	*commentSettingBox, *commentSettingHB1,
-	*commentSettingNGUsers,
-	*commentSettingNGComments,
-	*commentSettingHB2, *commentSettingNGEdit,
-	*commentSettingVB1, *commentSettingHB3,
-	*commentSettingNGUserAdd, *commentSettingNGUserAddLabel,
-	*commentSettingNGUserDelete, *commentSettingNGUserDeleteLabel,
-	*commentSettingHB4, *commentSettingNGCommentDeleteLabel,
-	*commentSettingNGCommentAdd, *commentSettingNGCommentAddLabel,
-	*commentSettingNGCommentDelete,
-	*commentSettingResponseList,
+	*commentSettingBox, *commentSettingHB1, *commentSettingNGEdit,
+	*commentSettingNGUsers, *commentSettingNGUsersBox,
+	*commentSettingNGComments, *commentSettingNGCommentsBox,
+	*commentSettingNGUsersLabel, *commentSettingNGCommentsLabel,
+	*commentSettingNGUsersAdd, *commentSettingNGUsersAddLabel,
+	*commentSettingNGUsersDelete, *commentSettingNGUsersDeleteLabel,
+	*commentSettingNGCommentsAdd, *commentSettingNGCommentsAddLabel,
+	*commentSettingNGCommentsDelete, *commentSettingNGCommentsDeleteLabel,
+	*commentSettingResponseList, *commentSettingResponseListLabel,
 	*commentSettingHB5, *commentSettingVB2,
-	*commentSettingQuestion,
-	*commentSettingResponse,
+	*commentSettingQuestion, *commentSettingQuestionLabel,
+	*commentSettingResponse, *commentSettingResponseLabel,
+	*commentSettingQuestionBox, *commentSettingResponseBox,
 	*commentSettingVB3, *commentSettingResponseDeleteLabel,
 	*commentSettingResponseAdd, *commentSettingResponseAddLabel,
 	*commentSettingResponseDelete,
-	*handleNameEB, *handleNameL,
-	*handleNameBox, *handleNameHB1,
-	*handleNameRawList, *handleNameVB1,
-	*handleName184Season, *handleName184List,
-	*handleNameVB2,
-	*handleNameID, *handleNameHandle,
-	*handleNameVB3, *handleNameAdd, *handleNameDeleteLabel,
-	*handleNameDelete, *handleNameAddLabel;
+	*handleNameEB, *handleNameL, *handleName184Delete,
+	*handleNameBox, *handleNameHB1, *handleName184B,
+	*handleNameRawList, *handleNameRawB, *handleName184Label,
+	*handleName184Season, *handleName184List, *handleNameRawLabel,
+	*handleNameVB2, *handleNameIDLabel, *handleNameHandleLabel,
+	*handleNameID, *handleNameHandle, *handleName184DeleteLabel,
+	*handleNameAdd, *handleNameRawDeleteLabel,
+	*handleNameRawDelete, *handleNameAddLabel;
 GtkListStore *commentConnectedListStore,
 	*commentMainStore, *alertFavoritesStore,
 	*alertIDTypeStore, *multimediaVideoSourceListStore,
@@ -187,8 +186,6 @@ void create(){
 	alertAddLabel=gtk_label_new("追加");
 	alertDelete=gtk_button_new();
 	alertDeleteLabel=gtk_label_new("削除");
-	alertReconnect=gtk_button_new();
-	alertReconnectLabel=gtk_label_new("再接続");
 	alertStatus=gtk_label_new("未接続");
 	alertServerName=gtk_label_new(NULL);
 	alertServerPort=gtk_label_new(NULL);
@@ -286,28 +283,33 @@ void create(){
 	commentSettingL=gtk_label_new("コメント設定");
 	commentSettingBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
 	commentSettingHB1=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	commentSettingNGUsersBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	commentSettingNGUsersLabel=gtk_label_new("NGユーザー");
 	commentSettingNGUsers=gtk_tree_view_new();
 	commentSettingNGUsersStore=gtk_list_store_new(1,G_TYPE_STRING);
+	commentSettingNGUsersDelete=gtk_button_new();
+	commentSettingNGUsersDeleteLabel=gtk_label_new("削除");
+	commentSettingNGUsersAdd=gtk_button_new();
+	commentSettingNGUsersAddLabel=gtk_label_new("追加");
+	commentSettingNGCommentsBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	commentSettingNGCommentsLabel=gtk_label_new("NGコメント");
 	commentSettingNGComments=gtk_tree_view_new();
 	commentSettingNGCommentsStore=gtk_list_store_new(1,G_TYPE_STRING);
-	commentSettingHB2=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	commentSettingNGCommentsDelete=gtk_button_new();
+	commentSettingNGCommentsDeleteLabel=gtk_label_new("削除");
+	commentSettingNGCommentsAdd=gtk_button_new();
+	commentSettingNGCommentsAddLabel=gtk_label_new("追加");
 	commentSettingNGEdit=gtk_entry_new();
-	commentSettingVB1=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
-	commentSettingHB3=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
-	commentSettingNGUserAdd=gtk_button_new();
-	commentSettingNGUserAddLabel=gtk_label_new("追加");
-	commentSettingNGUserDelete=gtk_button_new();
-	commentSettingNGUserDeleteLabel=gtk_label_new("削除");
-	commentSettingHB4=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
-	commentSettingNGCommentAdd=gtk_button_new();
-	commentSettingNGCommentAddLabel=gtk_label_new("追加");
-	commentSettingNGCommentDelete=gtk_button_new();
-	commentSettingNGCommentDeleteLabel=gtk_label_new("削除");
+	commentSettingResponseListLabel=gtk_label_new("コメント自動応答・置き換え");
 	commentSettingResponseList=gtk_tree_view_new();
 	commentSettingResponseListStore=gtk_list_store_new(1,G_TYPE_STRING);//TODO
 	commentSettingHB5=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	commentSettingVB2=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	commentSettingQuestionBox=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	commentSettingQuestionLabel=gtk_label_new("検出文字列");
 	commentSettingQuestion=gtk_entry_new();
+	commentSettingResponseBox=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	commentSettingResponseLabel=gtk_label_new("応答・置換文字列");
 	commentSettingResponse=gtk_entry_new();
 
 	commentSettingVB3=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
@@ -319,20 +321,26 @@ void create(){
 	handleNameL=gtk_label_new("コテハン");
 	handleNameBox=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
 	handleNameHB1=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	handleNameRawB=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	handleNameRawLabel=gtk_label_new("生ID");
 	handleNameRawList=gtk_tree_view_new();
 	handleNameRawListStore=gtk_list_store_new(2,G_TYPE_STRING,G_TYPE_STRING);
-	handleNameVB1=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	handleNameRawDelete=gtk_button_new();
+	handleNameRawDeleteLabel=gtk_label_new("削除");
+	handleName184B=gtk_box_new(GTK_ORIENTATION_VERTICAL,1);
+	handleName184Label=gtk_label_new("184");
 	handleName184Season=gtk_label_new(NULL);
 	handleName184List=gtk_tree_view_new();
 	handleName184ListStore=gtk_list_store_new(2,G_TYPE_STRING,G_TYPE_STRING);
+	handleName184Delete=gtk_button_new();
+	handleName184DeleteLabel=gtk_label_new("削除");
 	handleNameVB2=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	handleNameID=gtk_entry_new();
+	handleNameIDLabel=gtk_label_new("ID");
 	handleNameHandle=gtk_entry_new();
-	handleNameVB3=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
+	handleNameHandleLabel=gtk_label_new("コテハン");
 	handleNameAdd=gtk_button_new();
 	handleNameAddLabel=gtk_label_new("追加");
-	handleNameDelete=gtk_button_new();
-	handleNameDeleteLabel=gtk_label_new("削除");
 
 	gtk_container_add(GTK_CONTAINER(mainWindow),mainBox);
 	gtk_box_pack_start(GTK_BOX(mainBox),mainToolbar,FALSE,FALSE,0);
@@ -405,8 +413,6 @@ void create(){
 	gtk_container_add(GTK_CONTAINER(alertAdd),alertAddLabel);
 	gtk_box_pack_start(GTK_BOX(alertVB1),alertDelete,FALSE,FALSE,0);
 	gtk_container_add(GTK_CONTAINER(alertDelete),alertDeleteLabel);
-	gtk_box_pack_start(GTK_BOX(alertVB1),alertReconnect,FALSE,FALSE,0);
-	gtk_container_add(GTK_CONTAINER(alertReconnect),alertReconnectLabel);
 	gtk_box_pack_start(GTK_BOX(alertVB1),alertStatus,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(alertVB1),alertServerName,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(alertVB1),alertServerPort,FALSE,FALSE,0);
@@ -501,29 +507,34 @@ void create(){
 	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),commentSettingBox,commentSettingL);
 	//gtk_container_add(GTK_CONTAINER(commentSettingEB),commentSettingL);
 	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingHB1,TRUE,TRUE,0);
-	gtk_box_pack_start(GTK_BOX(commentSettingHB1),commentSettingNGUsers,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB1),commentSettingNGUsersBox,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingNGUsersBox),commentSettingNGUsersLabel,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingNGUsersBox),commentSettingNGUsers,TRUE,TRUE,0);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(commentSettingNGUsers),GTK_TREE_MODEL(commentSettingNGUsersStore));
-	gtk_box_pack_start(GTK_BOX(commentSettingHB1),commentSettingNGComments,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingNGUsersBox),commentSettingNGUsersDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingNGUsersDelete),commentSettingNGUsersDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingNGUsersBox),commentSettingNGUsersAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingNGUsersAdd),commentSettingNGUsersAddLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingHB1),commentSettingNGCommentsBox,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingNGCommentsBox),commentSettingNGCommentsLabel,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingNGCommentsBox),commentSettingNGComments,TRUE,TRUE,0);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(commentSettingNGComments),GTK_TREE_MODEL(commentSettingNGCommentsStore));
-	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingHB2,FALSE,FALSE,0);
-	gtk_box_pack_start(GTK_BOX(commentSettingHB2),commentSettingNGEdit,TRUE,TRUE,0);
-	gtk_box_pack_start(GTK_BOX(commentSettingHB2),commentSettingVB1,FALSE,FALSE,0);
-	gtk_box_pack_start(GTK_BOX(commentSettingVB1),commentSettingHB3,FALSE,FALSE,0);
-	gtk_box_pack_start(GTK_BOX(commentSettingHB3),commentSettingNGUserAdd,FALSE,FALSE,0);
-	gtk_container_add(GTK_CONTAINER(commentSettingNGUserAdd),commentSettingNGUserAddLabel);
-	gtk_box_pack_start(GTK_BOX(commentSettingHB3),commentSettingNGUserDelete,FALSE,FALSE,0);
-	gtk_container_add(GTK_CONTAINER(commentSettingNGUserDelete),commentSettingNGUserDeleteLabel);
-	gtk_box_pack_start(GTK_BOX(commentSettingVB1),commentSettingHB4,FALSE,FALSE,0);
-	gtk_box_pack_start(GTK_BOX(commentSettingHB4),commentSettingNGCommentAdd,FALSE,FALSE,0);
-	gtk_container_add(GTK_CONTAINER(commentSettingNGCommentAdd),commentSettingNGCommentAddLabel);
-	gtk_box_pack_start(GTK_BOX(commentSettingHB4),commentSettingNGCommentDelete,FALSE,FALSE,0);
-	gtk_container_add(GTK_CONTAINER(commentSettingNGCommentDelete),commentSettingNGCommentDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingNGCommentsBox),commentSettingNGCommentsDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingNGCommentsDelete),commentSettingNGCommentsDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingNGCommentsBox),commentSettingNGCommentsAdd,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(commentSettingNGCommentsAdd),commentSettingNGCommentsAddLabel);
+	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingNGEdit,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingResponseListLabel,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingResponseList,TRUE,TRUE,0);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(commentSettingResponseList),GTK_TREE_MODEL(commentSettingResponseListStore));
 	gtk_box_pack_start(GTK_BOX(commentSettingBox),commentSettingHB5,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(commentSettingHB5),commentSettingVB2,TRUE,TRUE,0);
-	gtk_box_pack_start(GTK_BOX(commentSettingVB2),commentSettingQuestion,FALSE,FALSE,0);
-	gtk_box_pack_start(GTK_BOX(commentSettingVB2),commentSettingResponse,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingVB2),commentSettingQuestionBox,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingQuestionBox),commentSettingQuestionLabel,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingQuestionBox),commentSettingQuestion,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingVB2),commentSettingResponseBox,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingResponseBox),commentSettingResponseLabel,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(commentSettingResponseBox),commentSettingResponse,TRUE,TRUE,0);
 	gtk_box_pack_start(GTK_BOX(commentSettingHB5),commentSettingVB3,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(commentSettingVB3),commentSettingResponseAdd,FALSE,FALSE,0);
 	gtk_container_add(GTK_CONTAINER(commentSettingResponseAdd),commentSettingResponseAddLabel);
@@ -533,20 +544,26 @@ void create(){
 	gtk_notebook_append_page(GTK_NOTEBOOK(mainNotebook),handleNameBox,handleNameL);
 	//gtk_container_add(GTK_CONTAINER(handleNameEB),handleNameL);
 	gtk_box_pack_start(GTK_BOX(handleNameBox),handleNameHB1,TRUE,TRUE,0);
-	gtk_box_pack_start(GTK_BOX(handleNameHB1),handleNameRawList,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameHB1),handleNameRawB,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameRawB),handleNameRawLabel,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameRawB),handleNameRawList,TRUE,TRUE,0);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(handleNameRawList),GTK_TREE_MODEL(handleNameRawListStore));
-	gtk_box_pack_start(GTK_BOX(handleNameHB1),handleNameVB1,TRUE,TRUE,0);
-	gtk_box_pack_start(GTK_BOX(handleNameVB1),handleName184Season,FALSE,FALSE,0);
-	gtk_box_pack_start(GTK_BOX(handleNameVB1),handleName184List,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameRawB),handleNameRawDelete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(handleNameRawDelete),handleNameRawDeleteLabel);
+	gtk_box_pack_start(GTK_BOX(handleNameHB1),handleName184B,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleName184B),handleName184Label,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(handleName184B),handleName184Season,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(handleName184B),handleName184List,TRUE,TRUE,0);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(handleName184List),GTK_TREE_MODEL(handleName184ListStore));
+	gtk_box_pack_start(GTK_BOX(handleName184B),handleName184Delete,FALSE,FALSE,0);
+	gtk_container_add(GTK_CONTAINER(handleName184Delete),handleName184DeleteLabel);
 	gtk_box_pack_start(GTK_BOX(handleNameBox),handleNameVB2,FALSE,FALSE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameVB2),handleNameIDLabel,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(handleNameVB2),handleNameID,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameVB2),handleNameHandleLabel,FALSE,FALSE,0);
 	gtk_box_pack_start(GTK_BOX(handleNameVB2),handleNameHandle,TRUE,TRUE,0);
-	gtk_box_pack_start(GTK_BOX(handleNameBox),handleNameVB3,FALSE,FALSE,0);
-	gtk_box_pack_start(GTK_BOX(handleNameVB3),handleNameAdd,TRUE,TRUE,0);
+	gtk_box_pack_start(GTK_BOX(handleNameVB2),handleNameAdd,FALSE,FALSE,0);
 	gtk_container_add(GTK_CONTAINER(handleNameAdd),handleNameAddLabel);
-	gtk_box_pack_start(GTK_BOX(handleNameVB3),handleNameDelete,TRUE,TRUE,0);
-	gtk_container_add(GTK_CONTAINER(handleNameDelete),handleNameDeleteLabel);
 
 	g_signal_connect(G_OBJECT(mainWindow),"destroy",G_CALLBACK(gtk_main_quit),NULL);
 	gtk_widget_show_all(mainWindow);
