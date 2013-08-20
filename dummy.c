@@ -1,3 +1,3 @@
-int main(){
+int __main(){
 	return 0;
 }
