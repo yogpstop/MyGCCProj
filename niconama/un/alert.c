@@ -51,7 +51,7 @@ void processalert() {
       ((struct sockaddr_in *) res->ai_addr)->sin_port = htons((uint16_t) atoi(port));
     }
     sock = socket(res->ai_family, SOCK_STREAM, 0);
-    connect(sock, res->ai_addr, res->ai_family == AF_INET6 ? v6size : v4size);
+    connect(sock, res->ai_addr, res->ai_addrlen);
     send(sock, thread, strlen(thread) + 1, 0);
     freeaddrinfo(res);
   }

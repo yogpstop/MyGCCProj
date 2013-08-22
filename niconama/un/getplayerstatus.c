@@ -99,7 +99,7 @@ struct getplayerstatus* getplayerstatus(char* liveid){
     strcat(thread, "\r\n\r\n");
     getaddrinfo("live.nicovideo.jp", "http", NULL, &res);
     sock = socket(res->ai_family, SOCK_STREAM, 0);
-    connect(sock, res->ai_addr, res->ai_family == AF_INET6 ? v6size : v4size);
+    connect(sock, res->ai_addr, res->ai_addrlen);
     send(sock, thread, strlen(thread), 0);
     freeaddrinfo(res);
   }

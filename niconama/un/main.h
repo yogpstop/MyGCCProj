@@ -21,5 +21,3 @@
 #define ATTR 0x40
 #define BASE_TIME 0x80
 #define START_TIME 0x100
-#define v6size sizeof(struct sockaddr_in6)
-#define v4size sizeof(struct sockaddr_in)
