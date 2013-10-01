@@ -1,5 +1,15 @@
+#pragma once
+
 #include <time.h>
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct getplayerstatus* getplayerstatus();
+void freegetplayerstatus(struct getplayerstatus* gps);
+
 struct getplayerstatus {
 	char* live_id;
 	char* title;
@@ -28,6 +38,9 @@ struct getplayerstatus {
 	char* category;
 };
 
+struct getpublishstatus* getpublishstatus();
+void freegetpublishstatus(struct getpublishstatus* gps);
+
 struct getpublishstatus {
 	char* live_id;
 	char* token;
@@ -36,3 +49,7 @@ struct getpublishstatus {
 	char* rtmp_stream;
 	int bitrate;
 };
+
+#ifdef __cplusplus
+}
+#endif

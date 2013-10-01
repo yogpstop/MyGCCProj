@@ -11,6 +11,10 @@
 #define IN_ENDTAG 0x100
 #define IN_DECL 0x200
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct xml {
 	char el_n[256];
 	char el_v[512];
@@ -24,3 +28,7 @@ struct xml {
 };
 
 void next(char, struct xml*);
+
+#ifdef __cplusplus
+}
+#endif

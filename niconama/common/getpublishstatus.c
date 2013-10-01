@@ -1,9 +1,11 @@
 #include "main.h"
 #include "xml_struct.h"
 #include "xml.h"
+#include "cookie.h"
 
 #define GBS_STR(var); if(!((struct getpublishstatus*)data->user)->var) { \
-			((struct getpublishstatus*)data->user)->var = malloc(strlen(data->el_v)+1); \
+			((struct getpublishstatus*)data->user)->var = \
+			(char*) malloc(strlen(data->el_v)+1); \
 			if(((struct getpublishstatus*)data->user)->var) \
 				strcpy(((struct getpublishstatus*)data->user)->var,data->el_v); \
 		}
@@ -12,8 +14,6 @@
 #define IF_GBS_FREE(var); if(gbs->var) { \
 			free(gbs->var); \
 		}
-
-extern char *user_session;
 
 static void callback3(struct xml *data) {
 	if(!strcmp(data->el_n,"getpublishstatus.stream.id")){
@@ -54,11 +54,12 @@ struct getpublishstatus* getpublishstatus(){
     freeaddrinfo(res);
   }
   
-  uint8_t recvdata;
+  char recvdata;
   ssize_t recvlen;
   
   struct xml data;
-  struct getpublishstatus* gbs = malloc(sizeof(struct getpublishstatus));
+  struct getpublishstatus* gbs = (struct getpublishstatus*)
+			malloc(sizeof(struct getpublishstatus));
   memset(&data,0,sizeof(struct xml));
   memset(gbs,0,sizeof(struct getpublishstatus));
   data.tag=callback3;

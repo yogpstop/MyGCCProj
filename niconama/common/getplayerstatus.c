@@ -1,9 +1,11 @@
 #include "main.h"
 #include "xml_struct.h"
 #include "xml.h"
+#include "cookie.h"
 
 #define GPS_STR(var); if(!((struct getplayerstatus*)data->user)->var) { \
-			((struct getplayerstatus*)data->user)->var = malloc(strlen(data->el_v)+1); \
+			((struct getplayerstatus*)data->user)->var = \
+			(char*) malloc(strlen(data->el_v)+1); \
 			if(((struct getplayerstatus*)data->user)->var) \
 				strcpy(((struct getplayerstatus*)data->user)->var,data->el_v); \
 		}
@@ -14,8 +16,6 @@
 #define IF_GPS_FREE(var); if(gps->var) { \
 			free(gps->var); \
 		}
-
-extern char *user_session;
 
 static void callback3(struct xml *data) {
 	if(!strcmp(data->el_n,"getplayerstatus.stream.id")){
@@ -104,11 +104,12 @@ struct getplayerstatus* getplayerstatus(char* liveid){
     freeaddrinfo(res);
   }
   
-  uint8_t recvdata;
+  char recvdata;
   ssize_t recvlen;
   
   struct xml data;
-  struct getplayerstatus* gps = malloc(sizeof(struct getplayerstatus));
+  struct getplayerstatus* gps = (struct getplayerstatus*)
+									malloc(sizeof(struct getplayerstatus));
   memset(&data,0,sizeof(struct xml));
   memset(gps,0,sizeof(struct getplayerstatus));
   data.tag=callback3;

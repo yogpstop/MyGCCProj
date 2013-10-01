@@ -1,3 +1,5 @@
+#pragma once
+
 // C Standard Library
 #include <stdint.h>
 #include <stdlib.h>
@@ -6,11 +8,15 @@
 // Unix Standard Library
 #include <unistd.h>
 #include <sys/types.h>
+#if _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
+#endif
 
 #define PORT 0x1
 #define MS 0x2

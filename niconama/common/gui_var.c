@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include "data_exchange.h"
 
 GtkWidget *mainWindow, *mainBox, *mainToolbar;
 GtkToolItem *mainToolbarNextReserve,
@@ -111,7 +112,19 @@ GtkListStore *commentConnectedListStore,
 	*commentSettingNGUsersStore, *commentSettingNGCommentsStore,
 	*commentSettingResponseListStore,
 	*handleNameRawListStore, *handleName184ListStore;
-void create(){
+extern THREAD_RET_TYPE start_streaming_thread(void *dummy);
+static gboolean start_streaming(GtkWidget *widget, GdkEventKey *key,
+									gpointer user_data) {
+	stop_flag = FALSE;
+	CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)start_streaming_thread, NULL,0,NULL);
+	return FALSE;
+}
+static gboolean stop_streaming(GtkWidget *widget, GdkEventKey *key,
+									gpointer user_data) {
+	stop_flag = TRUE;
+	return FALSE;
+}
+void createMainGUI(){
 	gtk_init(NULL,NULL);
 	// Create instances
 	mainWindow=gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -171,8 +184,12 @@ void create(){
 	ffmpegHB1=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
 	ffmpegStart=gtk_button_new();
 	ffmpegStartLabel=gtk_label_new("開始・再送");
+	g_signal_connect(G_OBJECT(ffmpegStart),"clicked",
+		G_CALLBACK(start_streaming),NULL);
 	ffmpegStop=gtk_button_new();
 	ffmpegStopLabel=gtk_label_new("停止");
+	g_signal_connect(G_OBJECT(ffmpegStop),"clicked",
+		G_CALLBACK(stop_streaming),NULL);
 	alertEB=gtk_event_box_new();
 	alertL=gtk_label_new("アラート");
 	alertBox=gtk_box_new(GTK_ORIENTATION_HORIZONTAL,1);
