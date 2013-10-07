@@ -4,16 +4,15 @@
 #include "cookie.h"
 
 #define GBS_STR(var); if(!((struct getpublishstatus*)data->user)->var) { \
-			((struct getpublishstatus*)data->user)->var = \
-			(char*) malloc(strlen(data->el_v)+1); \
-			if(((struct getpublishstatus*)data->user)->var) \
-				strcpy(((struct getpublishstatus*)data->user)->var,data->el_v); \
-		}
-#define GBS_INT(var); ((struct getpublishstatus*)data->user)->var = atoi(data->el_v);
+		((struct getpublishstatus*)data->user)->var = \
+		(char*) malloc(strlen(data->el_v)+1); \
+		if(((struct getpublishstatus*)data->user)->var) \
+			strcpy(((struct getpublishstatus*)data->user)->var,data->el_v); }
+
+#define GBS_INT(var); \
+	((struct getpublishstatus*)data->user)->var = atoi(data->el_v);
 		
-#define IF_GBS_FREE(var); if(gbs->var) { \
-			free(gbs->var); \
-		}
+#define IF_GBS_FREE(var); if(gbs->var) free(gbs->var);
 
 static void callback3(struct xml *data) {
 	if(!strcmp(data->el_n,"getpublishstatus.stream.id")){
@@ -44,7 +43,8 @@ struct getpublishstatus* getpublishstatus(){
   int sock;
   {
     struct addrinfo *res;
-    static char thread[200] = "GET /api/getpublishstatus HTTP/1.1\r\nHost: live.nicovideo.jp\r\nCookie: user_session=";
+    static char thread[200] = "GET /api/getpublishstatus HTTP/1.1\r\n"
+						"Host: live.nicovideo.jp\r\nCookie: user_session=";
     strcat(thread, user_session);
     strcat(thread, "\r\n\r\n");
     getaddrinfo("live.nicovideo.jp", "http", NULL, &res);

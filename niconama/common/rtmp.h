@@ -116,16 +116,16 @@ int rtmp_write_header(int(*v)(RTMP*),int(*a)(RTMP*));
 
 #define RTMP_SEND(r, p, ret) \
 		p->m_nInfoField2 = r->m_stream_id; \
-		ret=!RTMP_SendPacket(r, p, FALSE); \
-		free(p->m_body - RTMP_MAX_HEADER_SIZE); \
+		ret=RTMP_SendPacket(r, p, FALSE); \
+		free(((char*)p->m_body) - RTMP_MAX_HEADER_SIZE); \
 		free(p); p = NULL
 #define RTMP_INT_SEND(r, ret) \
-		ret=!RTMP_SendPacket(r, &r->m_write, FALSE); \
+		ret=RTMP_SendPacket(r, &r->m_write, FALSE); \
 		free(r->m_write.m_body - RTMP_MAX_HEADER_SIZE)
 
 #define RTMP_GET_INT_BUFFER(r,size,time,hdrType,pktType) \
-		r->m_write.m_headerType = hdrType; \
-		r->m_write.m_packetType = pktType; \
+		r->m_write.m_headerType = RTMP_PACKET_SIZE_ ## hdrType; \
+		r->m_write.m_packetType = RTMP_PACKET_TYPE_ ## pktType; \
 		r->m_write.m_hasAbsTimestamp = TRUE; \
 		r->m_write.m_nChannel = 4; \
 		r->m_write.m_nTimeStamp = time; \
@@ -134,9 +134,9 @@ int rtmp_write_header(int(*v)(RTMP*),int(*a)(RTMP*));
 							+ RTMP_MAX_HEADER_SIZE; \
 		r->m_write.m_nBytesRead = 0
 #define RTMP_GET_BUFFER(p,size,time,hdrType,pktType) \
-		p = (RTMPPacket*)malloc(sizeof(RTMPPacket)); \
-		p->m_headerType = hdrType; \
-		p->m_packetType = pktType; \
+		p = (RTMPPacket*)calloc(1, sizeof(RTMPPacket)); \
+		p->m_headerType = RTMP_PACKET_SIZE_ ## hdrType; \
+		p->m_packetType = RTMP_PACKET_TYPE_ ## pktType; \
 		p->m_hasAbsTimestamp = TRUE; \
 		p->m_nChannel = 4; \
 		p->m_nTimeStamp = time; \
@@ -145,7 +145,6 @@ int rtmp_write_header(int(*v)(RTMP*),int(*a)(RTMP*));
 		p->m_nBytesRead = 0
 
 #define RTMP_GET_AAC_BUFFER(p, size, frame) \
-		RTMP_GET_BUFFER(p,size,frame*10/441,frame?RTMP_PACKET_SIZE_MEDIUM: \
-							RTMP_PACKET_SIZE_LARGE,RTMP_PACKET_TYPE_AUDIO); \
+		RTMP_GET_BUFFER(p,size,frame*10/441, MEDIUM, AUDIO); \
 		p->m_body[0] = 0xAF; p->m_body[1] = 0x01
 

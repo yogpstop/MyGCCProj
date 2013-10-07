@@ -116,7 +116,7 @@ extern THREAD_RET_TYPE start_streaming_thread(void *dummy);
 static gboolean start_streaming(GtkWidget *widget, GdkEventKey *key,
 									gpointer user_data) {
 	stop_flag = FALSE;
-	CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)start_streaming_thread, NULL,0,NULL);
+	THREAD_CREATE_WIN2(start_streaming_thread, NULL);
 	return FALSE;
 }
 static gboolean stop_streaming(GtkWidget *widget, GdkEventKey *key,

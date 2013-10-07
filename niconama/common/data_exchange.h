@@ -2,10 +2,31 @@
 
 #if _WIN32
 #include <windows.h>
+#define THREAD_TYPE HANDLE
 #define THREAD_RET_TYPE DWORD
+#define THREAD_CREATE_WIN(a, b, c) \
+	c = CreateThread(NULL, 0, a, b, 0, NULL)
+#define THREAD_CREATE_WIN2(a, b) \
+	CreateThread(NULL, 0, a, b, 0, NULL)
+#define THREAD_CREATE_POS(a, b, c) \
+	c = _beginthreadex(NULL, 0, a, b, 0, NULL)
+#define THREAD_CREATE_POS2(a, b) \
+	_beginthreadex(NULL, 0, a, b, 0, NULL)
+#define THREAD_WAIT(a) \
+	WaitForSingleObject(a, INFINITE)
+#define THREAD_RETURN_SUCCESS 0
 #else
 #include <pthread.h>
+#define THREAD_TYPE pthread_t
 #define THREAD_RET_TYPE *void
+#define THREAD_CREATE_WIN(a, b, c) THREAD_CREATE_POS(a, b, c)
+#define THREAD_CREATE_WIN2(a, b, NULL)
+#define THREAD_CREATE_POS2(a, b, NULL)
+#define THREAD_CREATE_POS(a, b, c) \
+	pthread_create(&(c), NULL, a, b)
+#define THREAD_WAIT(a) \
+	pthread_join(&(a), NULL)
+#define THREAD_RETURN_SUCCESS NULL
 #endif
 
 #include <stdint.h>

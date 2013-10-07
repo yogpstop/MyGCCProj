@@ -8,8 +8,10 @@ AC_CONFIG_SRCDIR([common/coreaudio.cpp])
 AC_CONFIG_HEADERS([config.h])
 
 AC_SUBST(CFLAGS)
+#CFLAGS="-Wall -Werror -O0 -g"
 CFLAGS="-Wall -Werror -O3 -march=native"
 AC_SUBST(CXXFLAGS)
+#CXXFLAGS="-Wall -Werror -O0 -g"
 CXXFLAGS="-Wall -Werror -O3 -march=native"
 
 AC_SUBST(WIN_LIBS)

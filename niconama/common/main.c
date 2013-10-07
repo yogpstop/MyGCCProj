@@ -6,16 +6,19 @@
 #include "rtmp.h"
 #include "coreaudio.h"
 #include "fdk-aac.h"
+#include <stdio.h>
 
 void createMainGUI();
 
 int main() {
+	fputs("Enter main\n",stdout);
 	getSession();
 #if _WIN32
 	WSADATA wsad;
 	WSAStartup(WINSOCK_VERSION,&wsad);
-	CoInitialize(NULL);
+	CoInitializeEx(NULL, 0);
 #endif
+	fputs("Done initialize\n",stdout);
 	createMainGUI();
 #if _WIN32
 	CoUninitialize();
@@ -24,14 +27,13 @@ int main() {
 }
 
 THREAD_RET_TYPE start_streaming_thread(void *dummy) {
-	if(rtmp_init()) return -1;
-	if(fdk_aac_init()) return -2;
-	if(windows_core_audio_init()) return -3;
-	if(rtmp_write_header(NULL, fdk_aac_header)) return -4;
-	if(windows_core_audio_sync()) return -5;
-	CreateThread(NULL, 0, windows_core_audio_loop, NULL, 0, NULL);
-	CreateThread(NULL, 0, fdk_aac_loop, NULL, 0, NULL);
-	CreateThread(NULL, 0, rtmp_loop, NULL, 0, NULL);
-	//TODO create thread
-	return 0;
+	if(rtmp_init()) return THREAD_RETURN_SUCCESS;
+	if(fdk_aac_init()) return THREAD_RETURN_SUCCESS;
+	if(windows_core_audio_init()) return THREAD_RETURN_SUCCESS;
+	if(rtmp_write_header(NULL, fdk_aac_header)) return THREAD_RETURN_SUCCESS;
+	if(windows_core_audio_sync()) return THREAD_RETURN_SUCCESS;
+	THREAD_CREATE_WIN2(windows_core_audio_loop, NULL);
+	THREAD_CREATE_WIN2(fdk_aac_loop, NULL);
+	THREAD_CREATE_WIN2(rtmp_loop, NULL);
+	return THREAD_RETURN_SUCCESS;
 }
