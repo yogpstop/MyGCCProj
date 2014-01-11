@@ -17,10 +17,10 @@ static const PROPERTYKEY PKEY_Device_FriendlyName = {
 
 typedef struct {
 	AUDIO_DATA aud;
-    REFERENCE_TIME sleep_time;
-    IAudioClient *ac;
+	REFERENCE_TIME sleep_time;
+	IAudioClient *ac;
 	IAudioClient *acd;
-    IAudioCaptureClient *acc;
+	IAudioCaptureClient *acc;
 } device_t;
 
 #define INIT_DEVICE(d, sf, ds, hr) { \
@@ -50,8 +50,7 @@ typedef struct {
 	} \
     hr = d->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&ds.ac); \
 	PIF(hr); hr = ds.ac->GetMixFormat(&wf); PIF(hr); \
-	if(wf->nChannels!=AUDIO_CHANNELS || wf->nSamplesPerSec!=AUDIO_SAMPLE_RATE \
-			|| wf->wBitsPerSample!=AUDIO_BIT_DEPTH) \
+	if(wf->nSamplesPerSec!=AUDIO_SAMPLE_RATE) \
 		return AUDCLNT_E_UNSUPPORTED_FORMAT; \
     hr = ds.ac->Initialize(AUDCLNT_SHAREMODE_SHARED, sf, 0, 0, wf, NULL); \
 	PIF(hr); \

@@ -63,19 +63,6 @@ typedef struct {
 extern AUDIO_DATA **audio_buf;
 extern unsigned int audio_buf_len;
 
-#define video_data_len 3
-
-typedef struct {
-	int constant;
-	unsigned int width;
-	unsigned int height;
-	uint8_t *data;//RGB8-8-8
-	unsigned int *len;
-} VIDEO_DATA;
-
-extern VIDEO_DATA **video_buf;
-extern unsigned int video_buf_len;
-
 typedef struct {
 	int				(*init)		(void);
 	int				(*sync)		(void);
