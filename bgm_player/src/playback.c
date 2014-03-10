@@ -91,7 +91,7 @@ void *play_thread(void *_) {
 			if(exit_signal) break;
 			t = str->l > PERIOD_SIZE ? PERIOD_SIZE : str->l;
 			t = snd_write(handle, p, t);
-			if(t < 0) exit(-1);
+			if(t < 0) continue;
 			p += t * CHANNELS *BITS / 8;
 			str->l -= t;
 		}
@@ -102,5 +102,6 @@ void *play_thread(void *_) {
 		str->l = 0;
 		exit_signal = 0;
 	}
+	snd_pcm_close(handle);
 	return NULL;
 }
