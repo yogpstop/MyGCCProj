@@ -113,10 +113,11 @@ void list_shuffle() {
 		list_swap(i, r);
 	}
 }
-void listing(char **n) {
+int listing(char **n) {
 	while(*n!=NULL) {
 		listing_do(*n++);
 	}
+	if(list_size == 0 || list == NULL) return 1;
 	qsort(list, list_size, sizeof(char*), mycmp);
 	size_t cur = 1;
 	while(cur < list_size) {
@@ -126,4 +127,5 @@ void listing(char **n) {
 			cur++;
 		}
 	}
+	return 0;
 }

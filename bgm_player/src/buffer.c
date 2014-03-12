@@ -44,7 +44,6 @@ static inline void buffering_do(char *n) {
 	}
 }
 void *buffer_thread(void *_) {
-	if(list_size == 0 || list == NULL) force_exit_signal = 1;
 	int cur = 0;
 	while(1) {
 		if (force_exit_signal) break;

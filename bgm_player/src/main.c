@@ -1,11 +1,11 @@
 #include <pthread.h>
-void listing(char **);
+int listing(char **);
 void list_shuffle();
 void console();
 void *play_thread(void *);
 void *buffer_thread(void *);
 int main(int argc, char **argv) {
-	listing(argv+1);
+	if(listing(argv+1)) exit(-1);
 	list_shuffle();
 	pthread_t play, buffer;
 	pthread_attr_t rt;
