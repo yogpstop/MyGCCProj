@@ -31,6 +31,7 @@ void console() {
 		} else if(cbuf == 'C') {
 			force_exit_signal = 1;
 			exit_signal = 1;
+			break;
 		}
 	}
 	tcsetattr(STDIN_FILENO, TCSANOW, &bak);

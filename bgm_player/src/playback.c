@@ -14,25 +14,7 @@ typedef struct {
 } pcm;
 pcm buf[2] = {{NULL, NULL, 0}, {NULL, NULL, 0}};
 int exit_signal = 0, force_exit_signal = 0;
-static inline void check(int value) {
-	if (value < 0) {
-		exit(-1);
-	}
-}
-static inline int snd_write(snd_pcm_t *handle, void *wbuf, int len) {
-	int err;
-	while ((err = snd_pcm_writei(handle, wbuf, len)) == -EAGAIN);
-	if (err == -ESTRPIPE) {
-		fprintf(stdout, "Error %d\n", err);
-		while ((err = snd_pcm_resume(handle)) == -EAGAIN);
-		if (err < 0) err = -EPIPE;
-	}
-	if (err == -EPIPE) {
-		fprintf(stdout, "Error %d\n", err);
-		err = snd_pcm_prepare(handle);
-	}
-	return err;
-}
+#define check(value); {if((value)<0)force_exit_signal=1;}
 static inline void init_alsa(snd_pcm_t **handle) {
 	snd_pcm_hw_params_t *hwparams;
 	snd_pcm_sw_params_t *swparams;
@@ -67,6 +49,22 @@ static inline void init_alsa(snd_pcm_t **handle) {
 	check(snd_pcm_sw_params_set_period_event(*handle, swparams,
 		0));
 	check(snd_pcm_sw_params(*handle, swparams));
+	snd_pcm_hw_params_free(hwparams);
+	snd_pcm_sw_params_free(swparams);
+}
+static inline int snd_write(snd_pcm_t *handle, void *wbuf, int len) {
+	int err;
+	while ((err = snd_pcm_writei(handle, wbuf, len)) == -EAGAIN);
+	if (err == -ESTRPIPE) {
+		fprintf(stdout, "Error %d\n", err);
+		while ((err = snd_pcm_resume(handle)) == -EAGAIN);
+		if (err < 0) err = -EPIPE;
+	}
+	if (err == -EPIPE) {
+		fprintf(stdout, "Error %d\n", err);
+		err = snd_pcm_prepare(handle);
+	}
+	return err;
 }
 void *play_thread(void *_) {
 	snd_pcm_t *handle;
@@ -76,7 +74,7 @@ void *play_thread(void *_) {
 	pcm *str = buf + cur_id;
 	while(1) {
 		if(str->d == NULL || str->l == 0 || str->n == NULL) {
-			if(force_exit_signal) return NULL;
+			if(force_exit_signal) break;
 			cur_id = cur_id ? 0 : 1;
 			str = buf + cur_id;
 			continue;

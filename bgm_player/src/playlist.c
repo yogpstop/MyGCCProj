@@ -14,8 +14,8 @@ size_t list_size;
 static void listing_do(char *);
 static void list_add(char *name) {
 	list = realloc(list, ++list_size * sizeof(char*));
-	char **to = &(list[list_size-1]);
-	*to = malloc((strlen(name)+1)*sizeof(char));
+	char **to = &(list[list_size - 1]);
+	*to = malloc((strlen(name) + 1) * sizeof(char));
 	strcpy(*to, name);
 }
 static char *list_read_do(FILE *input) {
@@ -25,15 +25,15 @@ static char *list_read_do(FILE *input) {
 	memset(buf, 0, s);
 	end = buf + s;
 	do {
-		if(fread(cur, 1, 1, input)<1 && feof(input)) *cur = 0x0A;
-		if(end < cur) {
+		if (fread(cur, 1, 1, input)<1 && feof(input)) *cur = 0x0A;
+		if (end < cur) {
 			s <<= 1;
 			end = realloc(buf, s);
 			cur += end - buf;
 			buf = end;
 			end = buf + s;
 		}
-	} while(*cur++ != 0x0A);
+	} while (*cur++ != 0x0A);
 	cur--;
 	*cur = 0;
 	return buf;
@@ -75,17 +75,15 @@ static void listing_do(char *o) {
 	char *n = canonicalize_filename_mode(o, CAN_MISSING);
 	struct stat st;
 	stat(n, &st);
-	if(S_ISDIR(st.st_mode)) dir_read(n);
+	if (S_ISDIR(st.st_mode)) dir_read(n);
 	else {
 		FILE *f = fopen(n, "rb");
 		uint32_t fourcc;
-		if (fread(&fourcc, 4, 1, f) != 1) {
-			fclose(f);
-			return;
+		if (fread(&fourcc, 4, 1, f) == 1) {
+			if (fourcc == 0x46464952) list_add(n);
+			else if (fourcc == 0x43614C66) list_add(n);
+			else if (fourcc == 0x5453494C) list_read(f, n);
 		}
-		if(fourcc == 0x46464952) list_add(n);
-		else if(fourcc == 0x43614C66) list_add(n);
-		else if(fourcc == 0x5453494C) list_read(f, n);
 		fclose(f);
 	}
 	free(n);
@@ -94,11 +92,20 @@ static int mycmp(const void *a, const void *b) {
 	return strcmp(*(char*const*)a,*(char*const*)b);
 }
 static void list_remove(size_t pos) {
-	if(pos + 1 < list_size) {
+	if (list[pos] != NULL) free(list[pos]);
+	if (pos + 1 < list_size) {
 		memmove(list + pos, list + pos + 1,
 			(list_size - pos - 1) * sizeof(char*));
 	}
 	list = realloc(list, --list_size * sizeof(char*));
+}
+void list_full_remove() {
+	size_t i;
+	for (i = 0; i < list_size - 1; i++) {
+		if (list[i] != NULL) free(list[i]);
+	}
+	if (list != NULL) free(list);
+	list = NULL;
 }
 static void list_swap(size_t p1, size_t p2) {
 	char *t = list[p1];
@@ -108,19 +115,19 @@ static void list_swap(size_t p1, size_t p2) {
 void list_shuffle() {
 	srandom(time(NULL));
 	size_t i, r;
-	for(i = 0; i < list_size - 1; i++) {
+	for (i = 0; i < list_size - 1; i++) {
 		r = random() % list_size;
 		list_swap(i, r);
 	}
 }
 int listing(char **n) {
-	while(*n!=NULL) {
+	while (*n != NULL) {
 		listing_do(*n++);
 	}
-	if(list_size == 0 || list == NULL) return 1;
+	if (list_size == 0 || list == NULL) return 1;
 	qsort(list, list_size, sizeof(char*), mycmp);
 	size_t cur = 1;
-	while(cur < list_size) {
+	while (cur < list_size) {
 		if (!strcmp(list[cur - 1], list[cur])) {
 			list_remove(cur);
 		} else {

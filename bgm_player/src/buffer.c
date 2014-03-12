@@ -31,7 +31,7 @@ static inline void buffering_do(char *n) {
 	*strrchr(str->n, '.') = 0;
 	FILE *f = fopen(n, "rb");
 	uint32_t fourcc;
-	if (fread(&fourcc, 4, 1, f) != 1) exit(-1);
+	if (fread(&fourcc, 4, 1, f) != 1) fourcc = 0;
 	fseek(f, 0, SEEK_SET);
 	if(fourcc == 0x46464952) str->d = riff_read(f, &(str->l));
 	else if(fourcc == 0x43614C66) str->d = flac_read(f, &(str->l));
@@ -42,6 +42,19 @@ static inline void buffering_do(char *n) {
 		str->n = NULL;
 		str->l = 0;
 	}
+	fclose(f);
+}
+void clear_buffer() {
+	if(buf[0].d != NULL) free(buf[0].d);
+	buf[0].d = NULL;
+	if(buf[0].n != NULL) free(buf[0].n);
+	buf[0].n = NULL;
+	buf[0].l = 0;
+	if(buf[1].d != NULL) free(buf[1].d);
+	buf[1].d = NULL;
+	if(buf[1].n != NULL) free(buf[1].n);
+	buf[1].n = NULL;
+	buf[1].l = 0;
 }
 void *buffer_thread(void *_) {
 	int cur = 0;
