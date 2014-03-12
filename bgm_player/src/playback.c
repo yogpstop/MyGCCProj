@@ -49,8 +49,8 @@ static inline void init_alsa(snd_pcm_t **handle) {
 	check(snd_pcm_sw_params_set_period_event(*handle, swparams,
 		0));
 	check(snd_pcm_sw_params(*handle, swparams));
-	snd_pcm_hw_params_free(hwparams);
-	snd_pcm_sw_params_free(swparams);
+	//snd_pcm_hw_params_free(hwparams);
+	//snd_pcm_sw_params_free(swparams);
 }
 static inline int snd_write(snd_pcm_t *handle, void *wbuf, int len) {
 	int err;

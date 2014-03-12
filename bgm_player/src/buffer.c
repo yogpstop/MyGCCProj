@@ -42,7 +42,6 @@ static inline void buffering_do(char *n) {
 		str->n = NULL;
 		str->l = 0;
 	}
-	fclose(f);
 }
 void clear_buffer() {
 	if(buf[0].d != NULL) free(buf[0].d);

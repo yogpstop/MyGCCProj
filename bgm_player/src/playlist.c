@@ -115,7 +115,7 @@ static void list_swap(size_t p1, size_t p2) {
 void list_shuffle() {
 	srandom(time(NULL));
 	size_t i, r;
-	for (i = 0; i < list_size - 1; i++) {
+	for (i = 0; i < list_size; i++) {
 		r = random() % list_size;
 		list_swap(i, r);
 	}
