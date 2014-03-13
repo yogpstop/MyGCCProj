@@ -5,7 +5,7 @@ cd build && \
 gnulib-tool --import --no-cache-modules --no-conditional-dependencies \
 	--no-vc-files --no-libtool canonicalize dirname && \
 autoreconf -fiv && \
-./configure && \
+./configure $@ && \
 make clean && \
 make && \
 mv BGM_Player .. && \

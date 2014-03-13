@@ -4,10 +4,16 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADERS([config.h])
 
-AC_SUBST(CFLAGS)
-CFLAGS=" -Wall -O3 -march=native"
-AC_SUBST(CXXFLAGS)
-CXXFLAGS=" -Wall -O3 -march=native"
+AC_ARG_ENABLE(debug, [ --enable-debug], [DEBUG="yes"], [DEBUG="no"])
+AM_CONDITIONAL(DEBUG, test $DEBUG = yes)
+
+if test $DEBUG = yes; then
+	CFLAGS="-Wall -O0 -ggdb"
+	CXXFLAGS="-Wall -O0 -ggdb"
+else
+	CFLAGS="-Wall -O3 -march=native"
+	CXXFLAGS="-Wall -O3 -march=native"
+fi
 
 AC_PROG_CC
 

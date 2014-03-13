@@ -9,8 +9,8 @@
 #include <unistd.h>
 char *mdir_name (char const *file);
 #include "lib/canonicalize.h"
-char **list;
-size_t list_size;
+char **list = NULL;
+size_t list_size = 0;
 static void listing_do(char *);
 static void list_add(char *name) {
 	list = realloc(list, ++list_size * sizeof(char*));
@@ -62,29 +62,34 @@ static void dir_read(char *n) {
 	char *old = getcwd(NULL, 0);
 	chdir(n);
 	DIR *d = opendir(".");
-	struct dirent *c;
-	while ((c = readdir(d))!=NULL) {
-		if (strcmp(".", c->d_name) && strcmp("..", c->d_name))
-			listing_do(c->d_name);
+	if (d != NULL) {
+		struct dirent *c;
+		while ((c = readdir(d))!=NULL) {
+			if (strcmp(".", c->d_name) && strcmp("..", c->d_name))
+				listing_do(c->d_name);
+		}
+		closedir(d);
 	}
-	closedir(d);
 	chdir(old);
 	free(old);
 }
 static void listing_do(char *o) {
 	char *n = canonicalize_filename_mode(o, CAN_MISSING);
 	struct stat st;
-	stat(n, &st);
-	if (S_ISDIR(st.st_mode)) dir_read(n);
-	else {
-		FILE *f = fopen(n, "rb");
-		uint32_t fourcc;
-		if (fread(&fourcc, 4, 1, f) == 1) {
-			if (fourcc == 0x46464952) list_add(n);
-			else if (fourcc == 0x43614C66) list_add(n);
-			else if (fourcc == 0x5453494C) list_read(f, n);
+	if (!stat(n, &st)) {
+		if (S_ISDIR(st.st_mode)) dir_read(n);
+		else {
+			FILE *f = fopen(n, "rb");
+			if (f != NULL) {
+				uint32_t fourcc;
+				if (fread(&fourcc, 4, 1, f) == 1) {
+					if (fourcc == 0x46464952) list_add(n);
+					else if (fourcc == 0x43614C66) list_add(n);
+					else if (fourcc == 0x5453494C) list_read(f, n);
+				}
+				fclose(f);
+			}
 		}
-		fclose(f);
 	}
 	free(n);
 }
@@ -101,10 +106,12 @@ static void list_remove(size_t pos) {
 }
 void list_full_remove() {
 	size_t i;
-	for (i = 0; i < list_size - 1; i++) {
-		if (list[i] != NULL) free(list[i]);
+	if (list != NULL) {
+		for (i = 0; i < list_size - 1; i++) {
+			if (list[i] != NULL) free(list[i]);
+		}
+		free(list);
 	}
-	if (list != NULL) free(list);
 	list = NULL;
 }
 static void list_swap(size_t p1, size_t p2) {
