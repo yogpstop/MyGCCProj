@@ -9,6 +9,33 @@
 #include <unistd.h>
 char *mdir_name (char const *file);
 #include "lib/canonicalize.h"
+
+static char **visited = NULL;
+static size_t visited_size = 0;
+static int visit(char *n) {
+	size_t i;
+	if (visited != NULL) {
+		for (i = 0; i < visited_size; i++) {
+			if (visited[i] != NULL && !strcmp(visited[i], n)) return 1;
+		}
+	}
+	visited = realloc(visited, ++visited_size * sizeof(char*));
+	char **to = &(visited[visited_size - 1]);
+	*to = malloc((strlen(n) + 1) * sizeof(char));
+	strcpy(*to, name);
+	return 0;
+}
+static void clar_visited() {
+	size_t i;
+	if (visited != NULL) {
+		for (i = 0; i < visited_size; i++) {
+			if (visited[i] != NULL) free(visited[i]);
+		}
+		free(visited);
+	}
+	visited = NULL;
+}
+
 char **list = NULL;
 size_t list_size = 0;
 static void listing_do(char *);
@@ -25,7 +52,10 @@ static char *list_read_do(FILE *input) {
 	memset(buf, 0, s);
 	end = buf + s;
 	do {
-		if (fread(cur, 1, 1, input)<1 && feof(input)) *cur = 0x0A;
+		if (fread(cur, 1, 1, input) != 1) {
+			if (feof(input)) *cur = 0x0A;
+			else continue;
+		}
 		if (end < cur) {
 			s <<= 1;
 			end = realloc(buf, s);
@@ -59,6 +89,7 @@ static void list_read(FILE *f, char *n) {
 	free(old);
 }
 static void dir_read(char *n) {
+	if (visit(n)) return;
 	char *old = getcwd(NULL, 0);
 	chdir(n);
 	DIR *d = opendir(".");
@@ -107,7 +138,7 @@ static void list_remove(size_t pos) {
 void list_full_remove() {
 	size_t i;
 	if (list != NULL) {
-		for (i = 0; i < list_size - 1; i++) {
+		for (i = 0; i < list_size; i++) {
 			if (list[i] != NULL) free(list[i]);
 		}
 		free(list);
