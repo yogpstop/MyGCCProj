@@ -22,10 +22,10 @@ static int visit(char *n) {
 	visited = realloc(visited, ++visited_size * sizeof(char*));
 	char **to = &(visited[visited_size - 1]);
 	*to = malloc((strlen(n) + 1) * sizeof(char));
-	strcpy(*to, name);
+	strcpy(*to, n);
 	return 0;
 }
-static void clar_visited() {
+static void clear_visited() {
 	size_t i;
 	if (visited != NULL) {
 		for (i = 0; i < visited_size; i++) {
@@ -162,6 +162,7 @@ int listing(char **n) {
 	while (*n != NULL) {
 		listing_do(*n++);
 	}
+	clear_visited();
 	if (list_size == 0 || list == NULL) return 1;
 	qsort(list, list_size, sizeof(char*), mycmp);
 	size_t cur = 1;
