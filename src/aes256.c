@@ -24,7 +24,7 @@ int aes256(const unsigned char* in, int ilen, const unsigned char key[256/8],
 	memset(*out, 0, mlen);
 	EVP_CIPHER_CTX evpctx;
 	EVP_CIPHER_CTX_init(&evpctx);
-	if(1 != EVP_CipherInit_ex(&evpctx, EVP_aes_256_cbc(), NULL, key, iv, mode))
+	if(1 != EVP_CipherInit_ex(&evpctx, EVP_aes_256_ofb(), NULL, key, iv, mode))
 		goto error;
 	if(1 != EVP_CipherInit_ex(&evpctx, NULL, NULL, NULL, NULL, mode))
 		goto error;
