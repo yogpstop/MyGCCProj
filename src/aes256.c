@@ -36,7 +36,10 @@ int aes256(const unsigned char* in, int ilen, const unsigned char key[256/8],
 	return olen + flen;
 error:
 	EVP_CIPHER_CTX_cleanup(&evpctx);
-	return -mlen;
+	memset(*out, 0, mlen);
+	free(*out);
+	*out = NULL;
+	return 0;
 }
 #ifdef _WIN32
 static HANDLE conin;
@@ -135,7 +138,7 @@ int main(int argc, char* argv[]) {
 	MD5(riv, lriv, iv);
 	if(enc) {
 		lout = aes256(raw, lraw, pass, iv, &out, 1);
-		if (lout <= 0) goto myfree;
+		if (lout == 0) goto myfree;
 		fwrite(out, 1, lout, f);
 	} else {
 		fseek(f, 0, SEEK_END);
@@ -145,7 +148,7 @@ int main(int argc, char* argv[]) {
 		fseek(f, 0, SEEK_SET);
 		fread(raw, 1, lraw, f);
 		lout = aes256(raw, lraw, pass, iv, &out, 0);
-		if (lout <= 0) goto myfree;
+		if (lout == 0) goto myfree;
 		fputs("Your password is\n", stdout);
 		fwrite(out, 1, lout, stdout);
 		fputs("\n", stdout);
@@ -166,7 +169,6 @@ myfree:
 		free(raw);
 	}
 	if(out) {
-		if(lout < 0) lout = -lout;
 		memset(out, 0, lout);
 		free(out);
 	}
