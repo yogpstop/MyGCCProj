@@ -4,8 +4,9 @@
 #include <malloc.h>
 #include <string.h>
 #include <time.h>
-extern char **list;
-extern size_t list_size;
+
+#include "list.h"
+
 const struct timespec ms = {0, 1000000};
 typedef struct {
 	char *n;
@@ -15,9 +16,9 @@ typedef struct {
 extern pcm buf[2];
 extern int force_exit_signal;
 void list_shuffle();
-void *flac_read(FILE *, int *);
-void *riff_read(FILE *, int *);
-static inline void buffering_do(char *n) {
+void *flac_read(FILE *, int *, size_t, size_t);
+void *riff_read(FILE *, int *, size_t, size_t);
+static inline void buffering_do(data_format *n) {
 	int cur_id = 0;
 	pcm *str = buf + cur_id;
 	while(str->d != NULL || str->l != 0 || str->n != NULL) {
@@ -26,15 +27,15 @@ static inline void buffering_do(char *n) {
 		cur_id = cur_id ? 0 : 1;
 		str = buf + cur_id;
 	}
-	str->n = malloc((strlen(n)+1)*sizeof(char));
-	strcpy(str->n, strrchr(n, '/') + 1);
+	str->n = malloc((strlen(n->n)+1)*sizeof(char));
+	strcpy(str->n, strrchr(n->n, '/') + 1);
 	*strrchr(str->n, '.') = 0;
-	FILE *f = fopen(n, "rb");
+	FILE *f = fopen(n->n, "rb");
 	uint32_t fourcc;
 	if (fread(&fourcc, 4, 1, f) != 1) fourcc = 0;
 	fseek(f, 0, SEEK_SET);
-	if(fourcc == 0x46464952) str->d = riff_read(f, &(str->l));
-	else if(fourcc == 0x43614C66) str->d = flac_read(f, &(str->l));
+	if(fourcc == 0x46464952) str->d = riff_read(f, &(str->l), n->f, n->t);
+	else if(fourcc == 0x43614C66) str->d = flac_read(f, &(str->l), n->f, n->t);
 	if (str->d == NULL || str->l == 0 || str->n == NULL) {
 		if(str->d != NULL) free(str->d);
 		str->d = NULL;
@@ -59,7 +60,7 @@ void *buffer_thread(void *_) {
 	int cur = 0;
 	while(1) {
 		if (force_exit_signal) break;
-		buffering_do(list[cur++]);
+		buffering_do(list + cur++);
 		if (cur>=list_size) {
 			list_shuffle();
 			cur = 0;

@@ -1,3 +1,4 @@
+set -euxv
 rm -rf build && \
 mkdir build && \
 cp -r src configure.ac Makefile.am build && \
