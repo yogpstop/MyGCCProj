@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <malloc.h>
+#include <stdlib.h>
 void *riff_read(FILE *f, int *size, size_t from, size_t to) {
 	uint32_t rbuf[11] = {};
 	void *data = NULL, *ptr;
@@ -13,6 +13,7 @@ void *riff_read(FILE *f, int *size, size_t from, size_t to) {
 			rem -= from;
 			rbuf[10] = rem;
 			ptr = data = malloc(rem);
+			if (!data) { fclose(f); return NULL; }
 			while((read = fread(ptr, 1, rem, f)) >= 0) {
 				ptr += read;
 				rem -= read;

@@ -1,14 +1,1 @@
-set -euxv
-rm -rf build && \
-mkdir build && \
-cp -r src configure.ac Makefile.am build && \
-cd build && \
-gnulib-tool --import --no-cache-modules --no-conditional-dependencies \
-	--no-vc-files --no-libtool canonicalize dirname && \
-autoreconf -fiv && \
-./configure $@ && \
-make clean && \
-make && \
-mv BGM_Player .. && \
-cd .. && \
-rm -rf build
+gcc -Wall -Werror -O3 -s -flto -pipe -march=native -mtune=native *.c -lFLAC -lasound -lpthread

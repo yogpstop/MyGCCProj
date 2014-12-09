@@ -1,5 +1,5 @@
 #include <FLAC/stream_decoder.h>
-#include <malloc.h>
+#include <stdlib.h>
 static void *data, *ptr;
 static int len, rem, channels, bps;
 static size_t gf, gt;
@@ -9,7 +9,7 @@ static void mdcb(const FLAC__StreamDecoder *d,
 		channels = m->data.stream_info.channels;
 		bps = m->data.stream_info.bits_per_sample / 8;
 		rem = len = m->data.stream_info.total_samples * channels * bps;
-		data = ptr = malloc(len);
+		data = ptr = malloc(len); // TODO: allocation failed
 	}
 }
 static FLAC__StreamDecoderWriteStatus wcb(const FLAC__StreamDecoder *d,

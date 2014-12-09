@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 
 void read_cue(char *fn, size_t track, size_t *from, size_t *to) {
@@ -19,7 +19,10 @@ void read_cue(char *fn, size_t track, size_t *from, size_t *to) {
 		close(fd);
 		return;
 	}
-	read(fd, data, st.st_size);
+	if (st.st_size > read(fd, data, st.st_size)) {
+		close(fd);
+		return;
+	}
 	close(fd);
 	char tr[9], *cpos;
 	sprintf(tr, "TRACK %02ld", track);

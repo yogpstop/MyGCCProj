@@ -73,7 +73,7 @@ void *play_thread(void *_) {
 	void *p;
 	pcm *str = buf + cur_id;
 	while(1) {
-		if(str->d == NULL || str->l == 0 || str->n == NULL) {
+		if(!str->d || !str->l || !str->n) {
 			if(force_exit_signal) break;
 			cur_id = cur_id ? 0 : 1;
 			str = buf + cur_id;
