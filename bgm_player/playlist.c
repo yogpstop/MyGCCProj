@@ -171,10 +171,7 @@ static char* abspath(char *_) {
 			continue;
 		if(!strcmp(p, "..")) {
 			char *l = strrchr(r, '/');
-			if (l) {
-				if (l == r) *++l = 0;
-				else *l = 0;
-			}
+			if (l) *l = 0;
 			continue;
 		}
 		sstrcat(&r, &rl, "/");
