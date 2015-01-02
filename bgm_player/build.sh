@@ -1,1 +1,4 @@
-gcc -Wall -Werror -O3 -s -flto -pipe -march=native -mtune=native *.c -lFLAC -lasound -lpthread
+#!/bin/bash
+CFLAGSR="-march=native -mtune=native -O3 -s -pipe -flto"
+CFLAGSG="-O0 -g -ggdb"
+gcc -Wall -Werror $CFLAGSR *.c -lFLAC -lasound -lpthread
