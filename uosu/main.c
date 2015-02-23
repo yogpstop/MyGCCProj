@@ -9,9 +9,24 @@
 #include "thread.h"
 #include "fsutil.h"
 
-void readosu(const char*, hito**, unsigned int*,
+void readosu(const char*, hito**, unsigned int*, colours*,
 		timing**, unsigned int*, difficulty*, char**);
 void *mp3(char *, size_t *);
+#define INIT_COLOR(c) c.r=-1; c.g=-1; c.b=-1;
+#define SET_COLOR(c, pr, pg, pb) \
+	c.r = ((double) pr) / 255; \
+	c.g = ((double) pg) / 255; \
+	c.b = ((double) pb) / 255;
+#define INIT_COLOURS(u) \
+	SET_COLOR(u.combo[0], 255, 150, 0) \
+	SET_COLOR(u.combo[1], 5, 240, 5) \
+	SET_COLOR(u.combo[2], 5, 5, 240) \
+	SET_COLOR(u.combo[3], 240, 5, 5) \
+	INIT_COLOR(u.combo[4]) \
+	INIT_COLOR(u.combo[5]) \
+	INIT_COLOR(u.combo[6]) \
+	INIT_COLOR(u.combo[7]) \
+	SET_COLOR(u.border, 255, 255, 255)
 int main(int argc, char **argv) {
 	int pwdfd = open(".", O_RDONLY);
 	int i;
@@ -23,8 +38,10 @@ int main(int argc, char **argv) {
 		hito *ho = NULL;
 		timing *t = NULL;
 		difficulty hard;
+		colours col;
+		INIT_COLOURS(col);
 		char* mp3fn = NULL;
-		readosu(osufn, &ho, &holen, &t, &tlen, &hard, &mp3fn);
+		readosu(osufn, &ho, &holen, &col, &t, &tlen, &hard, &mp3fn);
 		free(osufn);
 		pt_play s_play;
 		s_play.ptr = mp3(mp3fn, &s_play.len);

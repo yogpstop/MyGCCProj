@@ -6,6 +6,7 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include "thread.h"
+#include "gl3.h"
 
 void loadTexture(const char *, GLuint);
 void *glmain(pt_glmain *p) {
@@ -50,10 +51,7 @@ void *glmain(pt_glmain *p) {
 	GLXContext glx = glXCreateNewContext(dsp, fb[best_i],
 			GLX_RGBA_TYPE, NULL, True);
 	glXMakeCurrent(dsp, win, glx);
-	void(* vs)(Display*,GLXDrawable,int) =
-		(void(*)(Display*,GLXDrawable,int)) glXGetProcAddress((const GLubyte*)"glXSwapIntervalEXT");
-	if (vs != NULL)
-		vs(dsp, win, 0);
+	glXSwapIntervalEXT(dsp, win, 0);
 	glScaled(1.0/320.0,1.0/240.0,1);
 	glRotated(180, 1, 0, 0);
 	// 64-512-64, 56-384-40
@@ -63,18 +61,19 @@ void *glmain(pt_glmain *p) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glLineWidth(1);
-	GLuint tex[5];
-	glGenTextures(5, tex);
+	GLuint tex[6];
+	glGenTextures(6, tex);
 	loadTexture("/media/DATA/ws/osu_skin/hitcircle@2x.png", tex[0]);
 	loadTexture("/media/DATA/ws/osu_skin/hitcircleoverlay@2x.png", tex[1]);
 	loadTexture("/media/DATA/ws/osu_skin/cursor@2x.png", tex[2]);
 	loadTexture("/media/DATA/ws/osu_skin/cursormiddle@2x.png", tex[3]);
 	loadTexture("/media/DATA/ws/osu_skin/approachcircle@2x.png", tex[4]);
+	loadTexture("/media/DATA/ws/osu_skin/sliderscorepoint@2x.png", tex[5]);
 	int n = 0;
 	hito *bbp/*, *min*/;
 	double cs = 45 * (12 - p->cs) / 12;
 	//struct timespec ts = {0, 1000000};
-	point *sld_bgn, *sld_max, *pshow;
+	point *pshow;
 	//void *dummy = malloc(1280*960*4);
 	while (++n) {
 		if (*p->done) break;
@@ -84,21 +83,9 @@ void *glmain(pt_glmain *p) {
 		pthread_mutex_lock(p->mutex);
 		for (bbp = p->buf + p->buf_len - 1; bbp >= p->buf; bbp--) {
 			if (bbp->alpha < 0) continue;
-			glColor4d(0, bbp->rgb, 0, bbp->alpha);
+			glColor4d(bbp->rgb * bbp->combo->r, bbp->rgb * bbp->combo->g, bbp->rgb * bbp->combo->b, bbp->alpha);
 			glBindTexture(GL_TEXTURE_2D, tex[0]);
 			if (bbp->type & OSU_OBJ_TYPE_SLIDER) {
-				glDisable(GL_TEXTURE_2D);
-				sld_max = bbp->side.a + (unsigned int)(bbp->side.alen * bbp->cshow);
-				glBegin(GL_LINE_STRIP);
-				for (sld_bgn = bbp->side.a; sld_bgn < sld_max; sld_bgn++)
-					glVertex2d(sld_bgn->x, sld_bgn->y);
-				glEnd();
-				sld_max = bbp->side.b + (unsigned int)(bbp->side.blen * bbp->cshow);
-				glBegin(GL_LINE_STRIP);
-				for (sld_bgn = bbp->side.b; sld_bgn < sld_max; sld_bgn++)
-					glVertex2d(sld_bgn->x, sld_bgn->y);
-				glEnd();
-				glEnable(GL_TEXTURE_2D);
 				pshow = bbp->p + (unsigned int)((bbp->plen - 1) * bbp->cshow);
 				glBegin(GL_QUADS);
 				glTexCoord2d(0, 0);
@@ -159,7 +146,7 @@ void *glmain(pt_glmain *p) {
 		glXSwapBuffers(dsp, win);
 		//nanosleep(&ts, NULL);
 	}
-	glDeleteTextures(5, tex);
+	glDeleteTextures(6, tex);
 	glXDestroyContext(dsp, glx);
 	XFree(vi);
 	XDestroyWindow(dsp, win);

@@ -36,6 +36,15 @@ typedef struct {
 
 } timing;
 typedef struct {
+	double r;
+	double g;
+	double b;
+} color;
+typedef struct {
+	color combo[8];
+	color border;
+} colours;
+typedef struct {
 	char slid_type;
 	unsigned int plen;
 	point *p;
@@ -51,7 +60,7 @@ typedef struct {
 	double rgb;
 	double acsize;
 	size_t clicked;
-	slider_side side;
 	double cshow;
+	color *combo;
 } hito;
 #endif

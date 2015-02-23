@@ -133,17 +133,39 @@ static inline void readDiff(char **line, char **s_line, difficulty *r) {
 
 static inline void readGen(char **line, char **s_line, char **afn) {
 	while ((*line = strtok_r(NULL, "\r\n", s_line)) && **line != '[') {
-		char *colon, *s_colon, *key;
+		char *s_colon, *key, *value;
 		key = strtok_r(*line, ":", &s_colon);
-		colon = strtok_r(NULL, ":", &s_colon);
-		if (!colon) continue;
-		if (*colon == ' ') colon++;
+		value = strtok_r(NULL, ":", &s_colon);
+		if (!value) continue;
+		if (*value == ' ') value++;
 		if (!strcmp(key, "AudioFilename"))
-			strcpy(*afn = malloc(strlen(colon) + 1), colon);
+			strcpy(*afn = malloc(strlen(value) + 1), value);
 	}
 }
 
-void readosu(const char *n, hito **hit, unsigned int *hlen,
+static inline void readColours(char **line, char **s_line, colours *r) {
+	while ((*line = strtok_r(NULL, "\r\n", s_line)) && **line != '[') {
+		char *s_colon, *key, *colo, *s_color;
+		color *c;
+		key = strtok_r(*line, ": ", &s_colon);
+		if (strlen(key) > 5 && !strncmp(key, "Combo", 5)) {
+			c = r->combo + strtol(key + 5, NULL, 10) - 1;
+		} else if (!strcmp(key, "SliderBorder")) {
+			c = &r->border;
+		} else continue;
+		colo = strtok_r(strtok_r(NULL, ":", &s_colon), ",", &s_color);
+		if (!colo) continue;
+		c->r = (double) strtol(colo, NULL, 10) / 255;
+		colo = strtok_r(NULL, ",", &s_color);
+		if (!colo) continue;
+		c->g = (double) strtol(colo, NULL, 10) / 255;
+		colo = strtok_r(NULL, ",", &s_color);
+		if (!colo) continue;
+		c->b = (double) strtol(colo, NULL, 10) / 255;
+	}
+}
+
+void readosu(const char *n, hito **hit, unsigned int *hlen, colours *col,
 		timing **tim, unsigned int *tlen, difficulty *diff, char **afn) {
 	char * const d = readfully(n);
 	char *s_line;
@@ -157,12 +179,18 @@ void readosu(const char *n, hito **hit, unsigned int *hlen,
 			readDiff(&line, &s_line, diff);
 		else if (!strcmp(line, "[General]"))
 			readGen(&line, &s_line, afn);
+		else if (!strcmp(line, "[Colours]"))
+			readColours(&line, &s_line, col);
 		else
 			line = strtok_r(NULL, "\r\n", &s_line);
 	}
 	hito *cur, *max = *hit + *hlen;
 	timing *ctp = *tim, *mtp = *tim + *tlen - 1;
+	int coloridx = 1;
 	for (cur = *hit; cur < max; cur++) {
+		if (cur->type & OSU_OBJ_TYPE_NEW) coloridx++;
+		if (coloridx >= 8 || col->combo[coloridx].r < 0) coloridx = 0;
+		cur->combo = col->combo + coloridx;
 		while (ctp < mtp && cur->time >= ctp[1].off) ctp++;
 		if (!(cur->type & OSU_OBJ_TYPE_SLIDER)) continue;
 		cur->length = cur->length / (diff->sm * 100) * ctp->beat_len;
@@ -183,7 +211,6 @@ void readosu(const char *n, hito **hit, unsigned int *hlen,
 				break;
 		}
 		if (tmp) {
-			polygon(tmp_len, tmp, diff->cs, 100000, &cur->side);
 			free(cur->p);
 			cur->plen = cur->length / 4;
 			cur->p = malloc(cur->plen * sizeof(point));
