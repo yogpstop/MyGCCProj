@@ -30,7 +30,11 @@ int main(int argc,char *argv[]){
 	argv[1][ptr2] = '/';
 	argv[1][++ptr2] = 0;
 	
+#ifdef _WIN32
+	mkdir(argv[1]);
+#else
 	mkdir(argv[1],S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+#endif
 	
 	for(ptr=0x2600;ptr<0x3E00;ptr+=0x20){
 		//ファイル名1文字目がNULL,ファイルサイズが0
