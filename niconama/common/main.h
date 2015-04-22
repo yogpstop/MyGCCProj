@@ -27,3 +27,5 @@
 #define ATTR 0x40
 #define BASE_TIME 0x80
 #define START_TIME 0x100
+
+int create_socket(char*, char*, int);

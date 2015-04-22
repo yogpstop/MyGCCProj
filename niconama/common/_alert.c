@@ -1,24 +1,19 @@
-#include <pthread.h>
 #include "main.h"
 #include "xml.h"
 
 #define USERID "12612571"
 
-//static pthread_t tdd;
-static char addr[128];
-static char port[128];
-static char tid[128];
 
-void callback(struct xml *data) {
+static void callback(void *u, char *el_n, char *el_v) {
 	char userid[16],communityid[16];
 	char *ptr,*ptr2,*liveid;
 	liveid=malloc(16);
 	memset(userid,0,16);
 	memset(communityid,0,16);
 	memset(liveid,0,16);
-	ptr=data->el_v;
+	ptr=el_v;
 	if(ptr!=NULL) {
-		ptr2=strchr(data->el_v,',');
+		ptr2=strchr(el_v,',');
 		if(ptr2!=NULL&&(ptr2-ptr)<17) {
 			memcpy(liveid,ptr,ptr2-ptr);
 			ptr=ptr2;
@@ -29,95 +24,75 @@ void callback(struct xml *data) {
 				ptr2=strchr(ptr+1,0);
 				if(ptr2!=NULL&&(ptr2-ptr)<17) {
 					memcpy(userid,ptr+1,ptr2-ptr-1);
-					//if(!strcmp(userid,USERID))
-						//pthread_create(&tdd, NULL, &getliveinfo, liveid);
+					printf("%s,%s,%s\n",liveid,communityid,userid);
 				}
 			}
 		}
 	}
 }
 
-void processalert() {
-  int sock;
-  {
-    struct addrinfo *res;
-    getaddrinfo(addr, NULL, NULL, &res);
-    char thread[100] = "<thread thread=\"";
-    strcat(thread, tid);
-    strcat(thread, "\" res_from=\"-1\" version=\"20061206\"/>");
-    if(res->ai_family == AF_INET6) {
-      ((struct sockaddr_in6 *) res->ai_addr)->sin6_port = htons((uint16_t) atoi(port));
-    } else {
-      ((struct sockaddr_in *) res->ai_addr)->sin_port = htons((uint16_t) atoi(port));
-    }
-    sock = socket(res->ai_family, SOCK_STREAM, 0);
-    connect(sock, res->ai_addr, res->ai_addrlen);
-    send(sock, thread, strlen(thread) + 1, 0);
-    freeaddrinfo(res);
-  }
-
-  uint8_t recvdata;
-  ssize_t recvlen;
-
+static void processalert(char *addr, char *port, char *tid) {
+  int sock = create_socket(addr, port, SOCK_STREAM);
+  send(sock, "<thread thread=\"", 16, 0);
+  send(sock, tid, strlen(tid), 0);
+  send(sock, "\" res_from=\"-1\" version=\"20061206\"/>", 37, 0);
+  char recvdata;
   struct xml data;
   memset(&data,0,sizeof(struct xml));
   data.tag=callback;
-
   while(1) {
-    recvlen = recv(sock, &recvdata, 1, 0);
-    if(recvlen < 1)
+    if(1 > recv(sock, &recvdata, 1, 0))
       break;
     if(recvdata != '\0')
-      next(recvdata,&data);
+      xml_next(recvdata,&data);
   }
-
-  close(sock);
+  closesocket(sock);
 }
 
-void callback2(struct xml *data) {
-	if(!strcmp(data->el_n,"getalertstatus.ms.addr")){
-		strcpy(addr,data->el_v);
-	} else if(!strcmp(data->el_n,"getalertstatus.ms.port")) {
-		strcpy(port,data->el_v);
-	} else if(!strcmp(data->el_n,"getalertstatus.ms.thread")) {
-		strcpy(tid,data->el_v);
+static void callback2(void *u, char *el_n, char*el_v) {
+	if(!strcmp(el_n,"getalertstatus/ms/addr")){
+		strcpy(((char**)u)[0],el_v);
+	} else if(!strcmp(el_n,"getalertstatus/ms/port")) {
+		strcpy(((char**)u)[1],el_v);
+	} else if(!strcmp(el_n,"getalertstatus/ms/thread")) {
+		strcpy(((char**)u)[2],el_v);
 	}
 }
 
 void getalertdata(){
-  int sock;
-  {
-    struct addrinfo *res;
-    static const char thread[] = "GET /api/getalertinfo HTTP/1.1\r\nHost: live.nicovideo.jp\r\n\r\n";
-    getaddrinfo("live.nicovideo.jp", "http", NULL, &res);
-    sock = socket(res->ai_family, SOCK_STREAM, 0);
-    connect(sock, res->ai_addr, res->ai_family == AF_INET6 ? v6size : v4size);
-    send(sock, thread, strlen(thread), 0);
-    freeaddrinfo(res);
-  }
-
-  uint8_t recvdata;
-  ssize_t recvlen;  
-
-  memset(addr,0,128);
-  memset(port,0,128);
-  memset(tid,0,128);
-  int http=0;
+  int sock = create_socket("live.nicovideo.jp", "http", 0);
+  send(sock, "GET /api/getalertinfo HTTP/1.1\r\nHost: live.nicovideo.jp\r\n\r\n", 59, 0);
+  char recvdata;
+  char **user = malloc(3 * sizeof(char*));
+  user[0] = malloc(128 * sizeof(char));
+  user[1] = malloc(128 * sizeof(char));
+  user[2] = malloc(128 * sizeof(char));
+  memset(user[0],0,128);
+  memset(user[1],0,128);
+  memset(user[2],0,128);
+  int http = 0;
   struct xml data;
-  memset(&data,0,sizeof(struct xml));
-  data.tag=callback2;
-
+  memset(&data, 0, sizeof(struct xml));
+  data.tag = callback2;
+  data.user = user;
   while(1) {
-    recvlen = recv(sock, &recvdata, 1, 0);
-    if(recvlen < 1)
+    if(1 > recv(sock, &recvdata, 1, 0))
       break;
-    if(http>1)
-      next(recvdata,&data);
+    if(http > 1)
+      xml_next(recvdata,&data);
     else if(recvdata == '\n')
       http++;
     else if(recvdata != '\r')
       http = 0;
   }
-  close(sock);
-  processalert();
+  closesocket(sock);
+  processalert(user[0], user[1], user[2]);
+}
+
+int main() {
+	WSADATA wsad;
+	WSAStartup(WINSOCK_VERSION, &wsad);
+	getalertdata();
+	WSACleanup();
+	return 0;
 }

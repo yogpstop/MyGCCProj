@@ -1,0 +1,5 @@
+/dist/
+*.d
+*.o
+*.exe
+/niconama/common/sqlite3*

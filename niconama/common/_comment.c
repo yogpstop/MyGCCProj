@@ -115,7 +115,7 @@ void printcomment(struct getplayerstatus* gps) {
     if(recvlen < 1)
       break;
     if(recvdata != '\0')
-      next(recvdata,&data);
+      xml_next(recvdata,&data);
   }
   close(sock);
 }

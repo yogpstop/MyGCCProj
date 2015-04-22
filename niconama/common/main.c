@@ -21,6 +21,7 @@ int main() {
 	fputs("Done initialize\n",stdout);
 	createMainGUI();
 #if _WIN32
+	WSACleanup();
 	CoUninitialize();
 #endif
 	return 0;

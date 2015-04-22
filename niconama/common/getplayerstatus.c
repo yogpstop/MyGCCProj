@@ -121,7 +121,7 @@ struct getplayerstatus* getplayerstatus(char* liveid){
     if(recvlen < 1)
       break;
     if(http>1)
-      next(recvdata,&data);
+      xml_next(recvdata,&data);
     else if(recvdata == '\n')
       http++;
     else if(recvdata != '\r')

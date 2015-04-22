@@ -1,82 +1,71 @@
 #include <string.h>
 #include "xml.h"
 
-void next(char c, struct xml *data) {
-	if(c=='>' && (data->fl&IN_TAG) != 0) {
-		if((data->fl&IN_DECL) == 0) {
-			if(data->pv=='/') {
-				if((data->fl&IN_ATTR_VAL_EMP)!=0)
-    				*(strchr(data->at_v,0)-1)=0;
-    			if((data->fl&IN_ATTR_NAME)!=0)
-    				*(strchr(data->at_n,0)-1)=0;
-    			if((data->fl&IN_TAG_NAME)!=0)
-    				*(strchr(data->el_n,0)-1)=0;
-    		}
-			if((data->fl&IN_ATTR)!=0)
-				if(data->attr)
-					data->attr(data);
-			if(data->pv=='/')
-				if(data->tag)
-					data->tag(data);
-			if(data->pv=='/'||(data->fl&IN_ENDTAG)!=0) {
-    			char *ptr = strchr(data->el_n,0);
-    			while((--ptr)>=data->el_n) {
-    				if(*ptr=='.') {
-    					*ptr=0;
-    					break;
-    				}
-    				*ptr=0;
-    			}
+void xml_next(char c, struct xml *data) {
+	if (c == '<' && !data->fl) { // Start of tag
+		data->fl = IN_TAG_NAME;
+		if (*data->el_n) // Parent is existing
+			*strchr(data->el_n, 0) = '/';
+	} else if (c == '>' && data->fl) { //End of tag
+		if (!(data->fl & IN_DECL)) { // Not declaration
+			if (data->fl & IN_ENDTAG) { // End of element
+				if (data->tag)
+					data->tag(data->user, data->el_n, data->el_v);
+				char *ptr = strchr(data->el_n, 0);
+				while ((--ptr) >= data->el_n) {
+					if (*ptr == '/') {
+						*ptr = 0;
+						break;
+					}
+					*ptr = 0;
+				}
 			}
+			if (data->fl & IN_ATTR) // End of attribute
+				if (data->attr)
+					data->attr(data->user, data->at_n, data->at_v);
 		}
-		memset(data->at_n,0,64);
-		memset(data->at_v,0,128);
-		data->fl=0;
-	} else if((data->fl&IN_DECL) != 0) {
-	} else if(c=='<' && (data->fl&IN_TAG) == 0) {
-		if(data->tag)
-			data->tag(data);
-		data->fl=IN_TAG_NAME;
-		if(strlen(data->el_n))
-			*strchr(data->el_n,0)='.';
-		data->pv=0;
-		memset(data->el_v,0,512);
-	} else if(c=='=' && (data->fl&IN_ATTR_NAME)!=0) {
-		data->fl=(data->fl|IN_ATTR_VAL_EMP)&(0xFFFF^IN_ATTR_NAME);
-		data->pv=0;
-	} else if(c=='"' && (data->fl&IN_ATTR_VAL_QUOT)!=0) {
-		data->fl=(data->fl|IN_ATTR_VAL_EMP)&(0xFFFF^IN_ATTR_VAL_QUOT);
-		data->pv='"';
-	} else if(c=='"' && (data->fl&IN_ATTR_VAL_EMP)!=0) {
-		data->fl=(data->fl|IN_ATTR_VAL_QUOT)&(0xFFFF^IN_ATTR_VAL_EMP);
-	} else if(c=='\'' && (data->fl&IN_ATTR_VAL_APOS)!=0) {
-		data->fl=(data->fl|IN_ATTR_VAL_EMP)&(0xFFFF^IN_ATTR_VAL_APOS);
-		data->pv='\'';
-	} else if(c=='\'' && (data->fl&IN_ATTR_VAL_EMP)!=0) {
-		data->fl=(data->fl|IN_ATTR_VAL_APOS)&(0xFFFF^IN_ATTR_VAL_EMP);
-	} else if(c==' ' && (data->fl&(OUT_QUOTE))!=0) {
-		if(data->pv!=0) {
-			if ((data->fl&IN_TAG_NAME)==0) {
-				if(data->attr)
-					data->attr(data);
-				memset(data->at_n,0,64);
-				memset(data->at_v,0,128);
-			}
-			data->fl=(data->fl|IN_ATTR_NAME)&(0xFFFF^(IN_TAG_NAME|IN_ATTR_VAL_EMP));
+		memset(data->el_v, 0, 512);
+		memset(data->at_n, 0, 64);
+		memset(data->at_v, 0, 128);
+		data->fl = 0;
+	} else if (data->fl & IN_DECL) { //Declaration
+	} else if (c == ' ' && !(data->fl & IN_QUOTE)) { // Next attribute
+		if ((data->fl & IN_ATTR_VAL_EMP) && *data->at_v) {
+			if (data->attr)
+				data->attr(data->user, data->at_n, data->at_v);
+			memset(data->at_n, 0, 64);
+			memset(data->at_v, 0, 128);
+			data->fl = (data->fl | IN_ATTR_NAME) & ~IN_ATTR_VAL_EMP;
 		}
-	} else if(c=='/' && (data->fl&IN_TAG_NAME)!=0 && data->pv==0) {
-		data->fl|=IN_ENDTAG;
-		*(strchr(data->el_n,0)-1)=0;
-	} else if(c=='?' && (data->fl&IN_TAG_NAME)!=0 && data->pv==0) {
-		data->fl|=IN_DECL;
-		*(strchr(data->el_n,0)-1)=0;
-	} else if((data->fl&IN_ATTR_VAL)!=0) {
-		*strchr(data->at_v,0)=data->pv=c;
-	} else if((data->fl&IN_ATTR_NAME)!=0) {
-		*strchr(data->at_n,0)=data->pv=c;
-	} else if((data->fl&(IN_TAG_NAME|IN_ENDTAG))==IN_TAG_NAME) {
-		*strchr(data->el_n,0)=data->pv=c;
-	} else if((data->fl&IN_TAG)==0) {
-		*strchr(data->el_v,0)=data->pv=c;
+		if ((data->fl & IN_TAG_NAME) &&
+				*data->el_n && *(strchr(data->el_n, 0) - 1) != '/') {
+			data->fl = (data->fl | IN_ATTR_NAME) & ~IN_TAG_NAME;
+		}
+		// FIXME IN_ATTR_NAME and at_n is not empty
+		// FIXME IN_ATTR_VAL_EMP and at_v is empty
+	} else if (c == '=' && (data->fl & IN_ATTR_NAME)) { // Attribute equals
+		data->fl = (data->fl | IN_ATTR_VAL_EMP) & ~IN_ATTR_NAME;
+	} else if (c == '"' && (data->fl & IN_ATTR_VAL_EMP)) { // Attribute quote
+		data->fl = (data->fl | IN_ATTR_VAL_QUOT) & ~IN_ATTR_VAL_EMP;
+	} else if (c == '"' && (data->fl & IN_ATTR_VAL_QUOT)) { // End of quote
+		data->fl = (data->fl | IN_ATTR_VAL_EMP) & ~IN_ATTR_VAL_QUOT;
+	} else if (c == '\'' && (data->fl & IN_ATTR_VAL_EMP)) { // Attribute apos
+		data->fl = (data->fl | IN_ATTR_VAL_APOS) & ~IN_ATTR_VAL_EMP;
+	} else if (c == '\'' && (data->fl & IN_ATTR_VAL_APOS)) { // End of apos
+		data->fl = (data->fl | IN_ATTR_VAL_EMP) & ~IN_ATTR_VAL_APOS;
+	} else if (c == '/' && (data->fl & IN_TAG_NAME)) { // End tag
+		data->fl |= IN_ENDTAG;
+		if (*data->el_n && *(strchr(data->el_n, 0) - 1) == '/')
+			*(strchr(data->el_n, 0) - 1) = 0;
+	} else if (c == '?' && IN_TAG_NAME_START) { // Declaration
+		data->fl |= IN_DECL;
+	} else if (data->fl & IN_ATTR_NAME) {
+		*strchr(data->at_n, 0) = c;
+	} else if (data->fl & IN_ATTR_VAL) {
+		*strchr(data->at_v, 0) = c;
+	} else if ((data->fl & (IN_TAG_NAME | IN_ENDTAG)) == IN_TAG_NAME) {
+		*strchr(data->el_n, 0) = c;
+	} else if (!data->fl) {
+		*strchr(data->el_v, 0) = c;
 	}
 }
