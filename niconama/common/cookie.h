@@ -2,8 +2,7 @@
 extern "C" {
 #endif
 
-extern char *user_session;
-void getSession();
+char *getSession();
 
 #ifdef __cplusplus
 }

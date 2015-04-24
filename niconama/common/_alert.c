@@ -61,7 +61,8 @@ static void callback2(void *u, char *el_n, char*el_v) {
 
 void getalertdata(){
   int sock = create_socket("live.nicovideo.jp", "http", 0);
-  send(sock, "GET /api/getalertinfo HTTP/1.1\r\nHost: live.nicovideo.jp\r\n\r\n", 59, 0);
+  send(sock, "GET /api/getalertinfo HTTP/1.1\r\n"
+      "Host: live.nicovideo.jp\r\n\r\n", 59, 0);
   char recvdata;
   char **user = malloc(3 * sizeof(char*));
   user[0] = malloc(128 * sizeof(char));
@@ -78,7 +79,7 @@ void getalertdata(){
   while(1) {
     if(1 > recv(sock, &recvdata, 1, 0))
       break;
-    if(http > 1)
+    if(1 < http)
       xml_next(recvdata,&data);
     else if(recvdata == '\n')
       http++;

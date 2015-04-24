@@ -3,70 +3,56 @@
 #include "xml.h"
 #include "cookie.h"
 
-#define GPS_STR(var); if(!((struct getplayerstatus*)data->user)->var) { \
-			((struct getplayerstatus*)data->user)->var = \
-			(char*) malloc(strlen(data->el_v)+1); \
-			if(((struct getplayerstatus*)data->user)->var) \
-				strcpy(((struct getplayerstatus*)data->user)->var,data->el_v); \
-		}
-#define GPS_INT(var); ((struct getplayerstatus*)data->user)->var = atoi(data->el_v);
-
-#define GPS_LNG(var); ((struct getplayerstatus*)data->user)->var = atol(data->el_v);
-		
-#define IF_GPS_FREE(var); if(gps->var) { \
-			free(gps->var); \
-		}
-
-static void callback3(struct xml *data) {
-	if(!strcmp(data->el_n,"getplayerstatus.stream.id")){
+static void callback3(void *user, char *el_n, char *el_v) {
+	if(!strcmp(el_n,"getplayerstatus/stream/id")){
 		GPS_STR(live_id);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.title")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/title")){
 		GPS_STR(title);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.description")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/description")){
 		GPS_STR(description);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.provider_type")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/provider_type")){
 		GPS_STR(provider_type);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.default_community")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/default_community")){
 		GPS_STR(community_id);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.owner_name")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/owner_name")){
 		GPS_STR(owner_name);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.twitter_tag")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/twitter_tag")){
 		GPS_STR(twitter_tag);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.contents_list.contents")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/contents_list/contents")){
 		GPS_STR(content1);
-	} else if(!strcmp(data->el_n,"getplayerstatus.user.room_label")){
+	} else if(!strcmp(el_n,"getplayerstatus/user/room_label")){
 		GPS_STR(room_label);
-	} else if(!strcmp(data->el_n,"getplayerstatus.rtmp.url")){
+	} else if(!strcmp(el_n,"getplayerstatus/rtmp/url")){
 		GPS_STR(rtmp_url);
-	} else if(!strcmp(data->el_n,"getplayerstatus.rtmp.ticket")){
+	} else if(!strcmp(el_n,"getplayerstatus/rtmp/ticket")){
 		GPS_STR(rtmp_ticket);
-	} else if(!strcmp(data->el_n,"getplayerstatus.ms.addr")){
+	} else if(!strcmp(el_n,"getplayerstatus/ms/addr")){
 		GPS_STR(ms_addr);
-	} else if(!strcmp(data->el_n,"getplayerstatus.marquee.category")){
+	} else if(!strcmp(el_n,"getplayerstatus/marquee/category")){
 		GPS_STR(category);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.owner_id")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/owner_id")){
 		GPS_INT(owner_id);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.is_reserved")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/is_reserved")){
 		GPS_INT(is_reserved);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.watch_conut")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/watch_conut")){
 		GPS_INT(watch_count);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.comment_count")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/comment_count")){
 		GPS_INT(comment_count);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.archive")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/archive")){
 		GPS_INT(archive);
-	} else if(!strcmp(data->el_n,"getplayerstatus.user.room_seetno")){
+	} else if(!strcmp(el_n,"getplayerstatus/user/room_seetno")){
 		GPS_INT(room_seetno);
-	} else if(!strcmp(data->el_n,"getplayerstatus.ms.port")){
+	} else if(!strcmp(el_n,"getplayerstatus/ms/port")){
 		GPS_INT(ms_port);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.base_time")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/base_time")){
 		GPS_LNG(base_time);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.open_time")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/open_time")){
 		GPS_LNG(open_time);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.start_time")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/start_time")){
 		GPS_LNG(start_time);
-	} else if(!strcmp(data->el_n,"getplayerstatus.stream.end_time")){
+	} else if(!strcmp(el_n,"getplayerstatus/stream/end_time")){
 		GPS_LNG(end_time);
-	} else if(!strcmp(data->el_n,"getplayerstatus.ms.thread")){
+	} else if(!strcmp(el_n,"getplayerstatus/ms/thread")){
 		GPS_LNG(ms_thread);
 	}
 }
@@ -89,44 +75,43 @@ void freegetplayerstatus(struct getplayerstatus* gps) {
 }
 
 struct getplayerstatus* getplayerstatus(char* liveid){
-  int sock;
-  {
-    struct addrinfo *res;
-    static char thread[200] = "GET /api/getplayerstatus?v=lv";
-    strcat(thread, liveid);
-    strcat(thread, " HTTP/1.1\r\nHost: live.nicovideo.jp\r\nCookie: user_session=");
-    strcat(thread, user_session);
-    strcat(thread, "\r\n\r\n");
-    getaddrinfo("live.nicovideo.jp", "http", NULL, &res);
-    sock = socket(res->ai_family, SOCK_STREAM, 0);
-    connect(sock, res->ai_addr, res->ai_addrlen);
-    send(sock, thread, strlen(thread), 0);
-    freeaddrinfo(res);
-  }
-  
-  char recvdata;
-  ssize_t recvlen;
-  
-  struct xml data;
+  int sock = create_socket("live.nicovideo.jp", "http", 0);
+  send(sock, "GET /api/getplayerstatus?v=lv", 29, 0);
+  send(sock, liveid, strlen(liveid), 0);
+  send(sock, " HTTP/1.1\r\n"
+      "Host: live.nicovideo.jp\r\nCookie: user_session=", 57, 0);
+  char *session = getSession();
+  send(sock, session, strlen(session), 0);
+  send(sock, "\r\n\r\n", 4, 0);
   struct getplayerstatus* gps = (struct getplayerstatus*)
-									malloc(sizeof(struct getplayerstatus));
-  memset(&data,0,sizeof(struct xml));
-  memset(gps,0,sizeof(struct getplayerstatus));
-  data.tag=callback3;
-  data.user=gps;
-
-  int http=0;
-  while(1) {
-    recvlen = recv(sock, &recvdata, 1, 0);
-    if(recvlen < 1)
+      malloc(sizeof(struct getplayerstatus));
+  memset(gps, 0, sizeof(struct getplayerstatus));
+  struct xml data;
+  memset(&data, 0, sizeof(struct xml));
+  data.tag = callback3;
+  data.user = gps;
+  char recvdata;
+  int http = 0;
+  while (1) {
+    if (1 > recv(sock, &recvdata, 1, 0))
       break;
-    if(http>1)
-      xml_next(recvdata,&data);
-    else if(recvdata == '\n')
+    if (1 < http)
+      xml_next(recvdata, &data);
+    else if (recvdata == '\n')
       http++;
-    else if(recvdata != '\r')
+    else if (recvdata != '\r')
       http = 0;
   }
-  close(sock);
+  closesocket(sock);
   return gps;
+}
+
+int main(int argc, char **argv) {
+	WSADATA wsad;
+	WSAStartup(WINSOCK_VERSION, &wsad);
+	struct getplayerstatus *gps = getplayerstatus(argv[1]);
+	printf("%s %s %s %s %s %d %s %d %d %d %I64d %I64d %I64d %I64d %s %d %s %s %d %s %s %s %u %ld %s", gps->live_id, gps->title, gps->description, gps->provider_type, gps->community_id, gps->owner_id, gps->owner_name, gps->is_reserved, gps->watch_count, gps->comment_count, gps->base_time, gps->open_time, gps->start_time, gps->end_time, gps->twitter_tag, gps->archive, gps->content1, gps->room_label, gps->room_seetno, gps->rtmp_url, gps->rtmp_ticket, gps->ms_addr, gps->ms_port, gps->ms_thread, gps->category);
+    freegetplayerstatus(gps);
+	WSACleanup();
+	return 0;
 }

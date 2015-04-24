@@ -7,6 +7,23 @@
 extern "C" {
 #endif
 
+#define STRUCT_SET_STR(str, var); if (!((str*)user)->var) { \
+		((str*)user)->var = malloc(strlen(el_v) + 1); \
+		if (((str*)user)->var) strcpy(((str*)user)->var, el_v); }
+#define STRUCT_SET_INT(str, var); \
+		((str*)user)->var = strtoul(el_v, NULL, 10);
+#define STRUCT_SAFE_FREE(str, var); \
+		if (str->var) { free(str->var); str->var = NULL; }
+
+#define GBS_STR(var); STRUCT_SET_STR(struct getpublishstatus, var);
+#define GBS_INT(var); STRUCT_SET_INT(struct getpublishstatus, var);
+#define IF_GBS_FREE(var); STRUCT_SAFE_FREE(gbs, var);
+
+#define GPS_STR(var); STRUCT_SET_STR(struct getplayerstatus, var);
+#define GPS_INT(var); STRUCT_SET_INT(struct getplayerstatus, var);
+#define GPS_LNG(var); STRUCT_SET_INT(struct getplayerstatus, var);
+#define IF_GPS_FREE(var); STRUCT_SAFE_FREE(gps, var);
+
 struct getplayerstatus* getplayerstatus();
 void freegetplayerstatus(struct getplayerstatus* gps);
 

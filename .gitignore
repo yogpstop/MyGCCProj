@@ -2,4 +2,4 @@
 *.d
 *.o
 *.exe
-/niconama/common/sqlite3*
+/niconama/libs/
