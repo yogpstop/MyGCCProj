@@ -8,6 +8,10 @@ void xml_next(char c, struct xml *data) {
 			*strchr(data->el_n, 0) = '/';
 	} else if (c == '>' && data->fl) { //End of tag
 		if (!(data->fl & IN_DECL)) { // Not declaration
+			if ((data->fl & IN_ATTR_NAME) && !strcmp(data->at_n, "/")) {
+				data->fl = (data->fl | IN_ENDTAG) & ~IN_ATTR_NAME;
+				memset(data->at_n, 0, 64);
+			}
 			if (data->fl & IN_ENDTAG) { // End of element
 				if (data->tag)
 					data->tag(data->user, data->el_n, data->el_v);
@@ -20,28 +24,33 @@ void xml_next(char c, struct xml *data) {
 					*ptr = 0;
 				}
 			}
-			if (data->fl & IN_ATTR) // End of attribute
+			if (data->fl & IN_ATTR) {// End of attribute
 				if (data->attr)
-					data->attr(data->user, data->at_n, data->at_v);
+					data->attr(data->user, data->el_n, data->at_n, data->at_v);
+				memset(data->at_n, 0, 64);
+				memset(data->at_v, 0, 128);
+			}
+			memset(data->el_v, 0, 512);
 		}
-		memset(data->el_v, 0, 512);
-		memset(data->at_n, 0, 64);
-		memset(data->at_v, 0, 128);
 		data->fl = 0;
 	} else if (data->fl & IN_DECL) { //Declaration
 	} else if (c == ' ' && !(data->fl & IN_QUOTE)) { // Next attribute
 		if ((data->fl & IN_ATTR_VAL_EMP) && *data->at_v) {
 			if (data->attr)
-				data->attr(data->user, data->at_n, data->at_v);
+				data->attr(data->user, data->el_n, data->at_n, data->at_v);
 			memset(data->at_n, 0, 64);
 			memset(data->at_v, 0, 128);
 			data->fl = (data->fl | IN_ATTR_NAME) & ~IN_ATTR_VAL_EMP;
+		}
+		if ((data->fl & IN_ATTR_NAME) && *data->at_n) {
+			if (data->attr)
+				data->attr(data->user, data->el_n, data->at_n, data->at_v);
+			memset(data->at_n, 0, 64);
 		}
 		if ((data->fl & IN_TAG_NAME) &&
 				*data->el_n && *(strchr(data->el_n, 0) - 1) != '/') {
 			data->fl = (data->fl | IN_ATTR_NAME) & ~IN_TAG_NAME;
 		}
-		// FIXME IN_ATTR_NAME and at_n is not empty
 		// FIXME IN_ATTR_VAL_EMP and at_v is empty
 	} else if (c == '=' && (data->fl & IN_ATTR_NAME)) { // Attribute equals
 		data->fl = (data->fl | IN_ATTR_VAL_EMP) & ~IN_ATTR_NAME;

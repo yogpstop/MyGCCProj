@@ -23,7 +23,7 @@ struct xml {
 	char at_v[128];
 	int fl;
 	void(*tag)(void*, char*, char*);
-	void(*attr)(void*, char*, char*);
+	void(*attr)(void*, char*, char*, char*);
 	void *user;
 };
 

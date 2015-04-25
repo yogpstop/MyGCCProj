@@ -25,7 +25,7 @@ extern "C" {
 #define IF_GPS_FREE(var); STRUCT_SAFE_FREE(gps, var);
 
 struct getplayerstatus* getplayerstatus();
-void freegetplayerstatus(struct getplayerstatus* gps);
+void freegetplayerstatus(struct getplayerstatus*);
 
 struct getplayerstatus {
 	char* live_id;
@@ -56,7 +56,7 @@ struct getplayerstatus {
 };
 
 struct getpublishstatus* getpublishstatus();
-void freegetpublishstatus(struct getpublishstatus* gps);
+void freegetpublishstatus(struct getpublishstatus*);
 
 struct getpublishstatus {
 	char* live_id;
