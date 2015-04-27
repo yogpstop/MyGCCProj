@@ -78,29 +78,14 @@ static void callback5(struct xml *data) {
 	memset(&((struct chat_gps*)data->user)->chat,0,sizeof(struct chat));
 }
 
-void printcomment(struct getplayerstatus* gps) {
+void getcomment(char *addr, char *port, char *tid) {
   pthread_t tdd;
   pthread_create(&tdd, NULL, &guimain, &store);
-  int sock;
-  {
-    struct addrinfo *res;
-    getaddrinfo(gps->ms_addr, NULL, NULL, &res);
-    char thread[100];
-    sprintf(thread,"<thread thread=\"%ld\" res_from=\"-1\" version=\"20061206\" scores=\"1\" />",gps->ms_thread);
-    if(res->ai_family == AF_INET6) {
-      ((struct sockaddr_in6 *) res->ai_addr)->sin6_port = htons(gps->ms_port);
-    } else {
-      ((struct sockaddr_in *) res->ai_addr)->sin_port = htons(gps->ms_port);
-    }
-    sock = socket(res->ai_family, SOCK_STREAM, 0);
-    connect(sock, res->ai_addr, res->ai_addrlen);
-    send(sock, thread, strlen(thread) + 1, 0);
-    freeaddrinfo(res);
-  }
-  
+  int sock = create_socket(addr, port, SOCK_STREAM);
+  send(sock, "<thread thread=\"", 16, 0);
+  send(sock, tid, strlen(tid), 0);
+  send(sock, "\" res_from=\"-1\" version=\"20061206\" scores=\"1\" />", 49, 0);
   uint8_t recvdata;
-  ssize_t recvlen;
-  
   struct xml data;
   struct chat_gps cdata;
   memset(&data,0,sizeof(struct xml));
@@ -109,13 +94,11 @@ void printcomment(struct getplayerstatus* gps) {
   data.attr=callback4;
   data.tag=callback5;
   data.user=&cdata;
-  
   while(1) {
-    recvlen = recv(sock, &recvdata, 1, 0);
-    if(recvlen < 1)
+    if(1 > recv(sock, &recvdata, 1, 0))
       break;
     if(recvdata != '\0')
       xml_next(recvdata,&data);
   }
-  close(sock);
+  closesocket(sock);
 }

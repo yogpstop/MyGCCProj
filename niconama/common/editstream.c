@@ -205,13 +205,23 @@ static void freeeditstream(form_t *v) {
 	free(v);
 }
 
-static form_t *geteditstream() {
+static form_t *geteditstream(const char *p, const char *b) {
   int sock = create_socket("live.nicovideo.jp", "http", 0);
-  send(sock, "GET /editstream HTTP/1.1\r\n"
-      "Host: live.nicovideo.jp\r\nCookie: user_session=", 72, 0);
+  send(sock, p && b ? "POST" : "GET", p && b ? 4 : 3, 0);
+  send(sock, " /editstream HTTP/1.1\r\n"
+      "Host: live.nicovideo.jp\r\nCookie: user_session=", 69, 0);
   char *session = getSession();
   send(sock, session, strlen(session), 0);
+  if (p && b) {
+    send(sock, "\r\nContent-Type: multipart/form-data; boundary=", 46, 0);
+    send(sock, b, strlen(b), 0);
+    send(sock, "\r\nContent-Length: ", 18, 0);
+    char tmp[8];
+    sprintf(tmp, "%I64u", strlen(p));
+    send(sock, tmp, strlen(tmp), 0);
+  }
   send(sock, "\r\n\r\n", 4, 0);
+  if (p && b) send(sock, p, strlen(p), 0);
   size_t bufl = 1024 * 128, bufi = 0;
   void *buf = malloc(bufl);
   int http = 0;
@@ -233,10 +243,8 @@ static form_t *geteditstream() {
   return ret;
 }
 
-int main() {
-	WSADATA wsad;
-	WSAStartup(WINSOCK_VERSION, &wsad);
-	form_t *ret = geteditstream();
+form_t *printeditstream(const char *p, const char *b) {
+	form_t *ret = geteditstream(p, b);
 	int ri = 0;
 	while (ri < ret->sl && ret->s[ri].n.v) {
 		printf("\n%d Name: ",ret->s[ri].f);
@@ -263,7 +271,60 @@ int main() {
 		fwrite(ret->t[ri].n.v, 1, ret->t[ri].n.l, stdout);
 		ri++;
 	}
+	return ret;
+}
+
+static void reloccat(char **p, int *l, const char *s, int sl) {
+	int pl = *p ? strlen(*p) : 0;
+	while (*l <= sl + pl) { int ll = *l; if(!*l) *l = 1024; else *l <<= 1;
+			*p = realloc(*p, *l); memset(*p + ll, 0, *l - ll); }
+	strncpy(*p + pl, s, sl);
+}
+static void mpfd_add(char **p, int *l, const char *b,
+		form_vl_set *n, form_vl_set *v) {
+	reloccat(p, l, "--", 2);
+	reloccat(p, l, b, strlen(b));
+	reloccat(p, l, "\r\nContent-Disposition: form-data; name=\"", 40);
+	reloccat(p, l, n->v, n->l);
+	reloccat(p, l, "\"\r\n\r\n", 5);
+	reloccat(p, l, v->v, v->l);
+	reloccat(p, l, "\r\n", 2);
+}
+static void mpfd_done(char **p, int *l, const char *b) {
+	reloccat(p, l, "--", 2);
+	reloccat(p, l, b, strlen(b));
+	reloccat(p, l, "--", 2);
+	reloccat(p, l, "\r\n", 2);
+}
+
+int main() {
+	WSADATA wsad;
+	WSAStartup(WINSOCK_VERSION, &wsad);
+	form_t *ret = printeditstream(NULL, NULL);
+	char *p = NULL;
+	int l = 0;
+	char *b = "---This_is_test_boundary---";
+	int ri = 0;
+	form_vl_set test = {"test", 4};
+	while (ri < ret->sl && ret->s[ri].n.v) {
+		mpfd_add(&p, &l, b, &ret->s[ri].n, ret->s[ri].v + ret->s[ri].f);
+		ri++;
+	}
+	ri = 0;
+	while (ri < ret->bl && ret->b[ri].n.v) {
+		if (ret->b[ri].f)
+		mpfd_add(&p, &l, b, &ret->b[ri].n, &ret->b[ri].v);
+		ri++;
+	}
+	ri = 0;
+	while (ri < ret->tl && ret->t[ri].n.v) {
+		mpfd_add(&p, &l, b, &ret->t[ri].n, &test);
+		ri++;
+	}
+	mpfd_done(&p, &l, b);
+	form_t *ret2 = printeditstream(p, b);
     freeeditstream(ret);
+    freeeditstream(ret2);
 	WSACleanup();
 	return 0;
 }

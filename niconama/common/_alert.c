@@ -35,7 +35,7 @@ static void processalert(char *addr, char *port, char *tid) {
   int sock = create_socket(addr, port, SOCK_STREAM);
   send(sock, "<thread thread=\"", 16, 0);
   send(sock, tid, strlen(tid), 0);
-  send(sock, "\" res_from=\"-1\" version=\"20061206\"/>", 37, 0);
+  send(sock, "\" res_from=\"-1\" version=\"20061206\" />", 38, 0);
   char recvdata;
   struct xml data;
   memset(&data,0,sizeof(struct xml));
