@@ -3,6 +3,7 @@ http://live.nicovideo.jp/api/getthreads?v=lv..
 http://live.nicovideo.jp/api/waitinfo?v=lv.. //CAN?
 http://live.nicovideo.jp/api/heartbeat?v=lv..
 http://live.nicovideo.jp/api/broadcast/lv..?token=..&body=..&mail=..&name=..
+http://live.nicovideo.jp/api/presscast
 
 http://live.nicovideo.jp/api/getsalelist?v=lv..
 http://live.nicovideo.jp/api/usepoint?v=lv..&token=..&code=..&item=..&num=..

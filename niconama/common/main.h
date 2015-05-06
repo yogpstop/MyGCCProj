@@ -11,11 +11,15 @@
 #if _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#define WS2I WSADATA wsad; WSAStartup(WINSOCK_VERSION, &wsad);
+#define WS2U WSACleanup();
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#define WS2I
+#define WS2U
 #endif
 
 #define PORT 0x1

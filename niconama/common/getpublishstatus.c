@@ -54,16 +54,15 @@ struct getpublishstatus* getpublishstatus(){
     else if (recvdata != '\r')
       http = 0;
   }
-  closesocket(sock);
+  close(sock);
   return gbs;
 }
 
 int main() {
-	WSADATA wsad;
-	WSAStartup(WINSOCK_VERSION, &wsad);
+	WS2I
 	struct getpublishstatus *gbs = getpublishstatus();
 	printf("%s %s %s %s %s %d", gbs->live_id, gbs->token, gbs->rtmp_url, gbs->rtmp_ticket, gbs->rtmp_stream, gbs->bitrate);
     freegetpublishstatus(gbs);
-	WSACleanup();
+	WS2U
 	return 0;
 }

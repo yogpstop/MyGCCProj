@@ -13,17 +13,16 @@ void createMainGUI();
 int main() {
 	fputs("Enter main\n",stdout);
 	getSession();
+	WS2I
 #if _WIN32
-	WSADATA wsad;
-	WSAStartup(WINSOCK_VERSION,&wsad);
 	CoInitializeEx(NULL, 0);
 #endif
 	fputs("Done initialize\n",stdout);
 	createMainGUI();
 #if _WIN32
-	WSACleanup();
 	CoUninitialize();
 #endif
+	WS2U
 	return 0;
 }
 

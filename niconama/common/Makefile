@@ -3,32 +3,43 @@ CFLAGS=-Wall -Werror -O3 -march=native -pipe -flto
 LD=gcc
 LDFLAGS=-s
 
-SRCS=$(wildcard *.c)
-OBJS=$(SRCS:%.c=%.o)
-DEPS=$(SRCS:%.c=%.d)
-LIBS=$(shell pkg-config --libs sqlite3 libpcre)
-
-ifeq ($(OS),Windows_NT)
-EXEEXT=.exe
+SRCS:=$(wildcard *.c)
+OBJS:=$(SRCS:%.c=%.o)
+DEPS:=$(SRCS:%.c=%.d)
+PCLIBS:=sqlite3 libpcre
+ifneq ($(SYS),mingw)
+PCLIBS+=libcrypto
+endif
+LIBS:=$(shell pkg-config --libs $(PCLIBS))
+CCFLAGS:=$(CFLAGS) $(shell pkg-config --cflags $(PCLIBS))
+LLDFLAGS:=$(LDFLAGS)
+ifeq ($(SYS), mingw)
+EXT=.exe
 LIBS+=-lcrypt32 -lws2_32
+LLDFLAGS+=-static
+CCFLAGS+=-DPCRE_STATIC
 endif
 
-CFLAGS+=$(shell pkg-config --cflags sqlite3 libpcre)
-
-all: alert$(EXEEXT) getpublishstatus$(EXEEXT) getplayerstatus$(EXEEXT) editstream$(EXEEXT)
+all: alert$(EXT) getpublishstatus$(EXT) editstream$(EXT) comment$(EXT) getthreads$(EXT) fixedhn$(EXT)
 
 -include $(DEPS)
 
-getpublishstatus$(EXEEXT): getpublishstatus.o xml.o n_socket.o cookie.o
-	$(LD) -o $@ $(LDFLAGS) $^ $(LIBS)
-getplayerstatus$(EXEEXT): getplayerstatus.o xml.o n_socket.o cookie.o
-	$(LD) -o $@ $(LDFLAGS) $^ $(LIBS)
-editstream$(EXEEXT): editstream.o xml.o n_socket.o cookie.o
-	$(LD) -o $@ $(LDFLAGS) $^ $(LIBS)
-alert$(EXEEXT): _alert.o xml.o n_socket.o
-	$(LD) -o $@ $(LDFLAGS) $^ $(LIBS)
+getpublishstatus$(EXT): getpublishstatus.o xml.o n_socket.o cookie.o
+	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+getplayerstatus$(EXT): getplayerstatus.o xml.o n_socket.o cookie.o
+	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+getthreads$(EXT): getthreads.o xml.o n_socket.o cookie.o
+	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+editstream$(EXT): editstream.o xml.o n_socket.o cookie.o
+	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+alert$(EXT): _alert.o xml.o n_socket.o
+	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+comment$(EXT): _comment.o getplayerstatus.o xml.o n_socket.o cookie.o
+	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+fixedhn$(EXT): fixedhn.o xml.o
+	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
 .c.o:
-	$(CC) -c -MMD -MP -o $@ $(CFLAGS) $<
+	$(CC) -c -MMD -MP -o $@ $(CCFLAGS) $<
 clean:
-	rm -f $(OBJS) $(DEPS) {alert,getpublishstatus,getplayerstatus,editstream}$(EXEEXT)
+	rm -f $(OBJS) $(DEPS) {alert,comment,getpublishstatus,getplayerstatus,getthreads,editstream,fixedhn}$(EXT)
 .PHONY: clean

@@ -1,7 +1,4 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <ws2tcpip.h>
-#include <winsock2.h>
+#include "main.h"
 
 int create_socket(char *host, char *prot, int stype) {
 	int sock = -1;
@@ -13,7 +10,7 @@ int create_socket(char *host, char *prot, int stype) {
 			sock = socket(aip->ai_family, aip->ai_socktype, aip->ai_protocol);
 			if (-1 == sock) continue;
 			if (-1 != connect(sock, aip->ai_addr, aip->ai_addrlen)) break;
-			closesocket(sock);
+			close(sock);
 		}
 		freeaddrinfo(ais);
 	}

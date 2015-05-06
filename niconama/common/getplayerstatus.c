@@ -28,6 +28,10 @@ static void callback3(void *user, char *el_n, char *el_v) {
 		GPS_STR(rtmp_ticket);
 	} else if(!strcmp(el_n,"getplayerstatus/ms/addr")){
 		GPS_STR(ms_addr);
+	} else if(!strcmp(el_n,"getplayerstatus/ms/port")){
+		GPS_STR(ms_port);
+	} else if(!strcmp(el_n,"getplayerstatus/ms/thread")){
+		GPS_STR(ms_thread);
 	} else if(!strcmp(el_n,"getplayerstatus/marquee/category")){
 		GPS_STR(category);
 	} else if(!strcmp(el_n,"getplayerstatus/stream/owner_id")){
@@ -42,8 +46,6 @@ static void callback3(void *user, char *el_n, char *el_v) {
 		GPS_INT(archive);
 	} else if(!strcmp(el_n,"getplayerstatus/user/room_seetno")){
 		GPS_INT(room_seetno);
-	} else if(!strcmp(el_n,"getplayerstatus/ms/port")){
-		GPS_INT(ms_port);
 	} else if(!strcmp(el_n,"getplayerstatus/stream/base_time")){
 		GPS_LNG(base_time);
 	} else if(!strcmp(el_n,"getplayerstatus/stream/open_time")){
@@ -52,8 +54,6 @@ static void callback3(void *user, char *el_n, char *el_v) {
 		GPS_LNG(start_time);
 	} else if(!strcmp(el_n,"getplayerstatus/stream/end_time")){
 		GPS_LNG(end_time);
-	} else if(!strcmp(el_n,"getplayerstatus/ms/thread")){
-		GPS_LNG(ms_thread);
 	}
 }
 
@@ -70,6 +70,8 @@ void freegetplayerstatus(struct getplayerstatus* gps) {
 	IF_GPS_FREE(rtmp_url);
 	IF_GPS_FREE(rtmp_ticket);
 	IF_GPS_FREE(ms_addr);
+	IF_GPS_FREE(ms_port);
+	IF_GPS_FREE(ms_thread);
 	IF_GPS_FREE(category);
 	free(gps);
 }
@@ -102,16 +104,15 @@ struct getplayerstatus* getplayerstatus(char* liveid){
     else if (recvdata != '\r')
       http = 0;
   }
-  closesocket(sock);
+  close(sock);
   return gps;
 }
-
+/*
 int main(int argc, char **argv) {
-	WSADATA wsad;
-	WSAStartup(WINSOCK_VERSION, &wsad);
+	WS2I
 	struct getplayerstatus *gps = getplayerstatus(argv[1]);
-	printf("%s %s %s %s %s %d %s %d %d %d %I64d %I64d %I64d %I64d %s %d %s %s %d %s %s %s %u %ld %s", gps->live_id, gps->title, gps->description, gps->provider_type, gps->community_id, gps->owner_id, gps->owner_name, gps->is_reserved, gps->watch_count, gps->comment_count, gps->base_time, gps->open_time, gps->start_time, gps->end_time, gps->twitter_tag, gps->archive, gps->content1, gps->room_label, gps->room_seetno, gps->rtmp_url, gps->rtmp_ticket, gps->ms_addr, gps->ms_port, gps->ms_thread, gps->category);
+	printf("%s %s %s %s %s %d %s %d %d %d %I64d %I64d %I64d %I64d %s %d %s %s %d %s %s %s %s %s %s", gps->live_id, gps->title, gps->description, gps->provider_type, gps->community_id, gps->owner_id, gps->owner_name, gps->is_reserved, gps->watch_count, gps->comment_count, gps->base_time, gps->open_time, gps->start_time, gps->end_time, gps->twitter_tag, gps->archive, gps->content1, gps->room_label, gps->room_seetno, gps->rtmp_url, gps->rtmp_ticket, gps->ms_addr, gps->ms_port, gps->ms_thread, gps->category);
     freegetplayerstatus(gps);
-	WSACleanup();
+	WS2U
 	return 0;
-}
+}*/

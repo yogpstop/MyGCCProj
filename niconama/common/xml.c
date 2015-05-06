@@ -34,7 +34,7 @@ void xml_next(char c, struct xml *data) {
 		}
 		data->fl = 0;
 	} else if (data->fl & IN_DECL) { //Declaration
-	} else if (c == ' ' && !(data->fl & IN_QUOTE)) { // Next attribute
+	} else if (c == ' ' && data->fl && !(data->fl & IN_QUOTE)) { // Next attr
 		if ((data->fl & IN_ATTR_VAL_EMP) && *data->at_v) {
 			if (data->attr)
 				data->attr(data->user, data->el_n, data->at_n, data->at_v);
@@ -62,7 +62,7 @@ void xml_next(char c, struct xml *data) {
 		data->fl = (data->fl | IN_ATTR_VAL_APOS) & ~IN_ATTR_VAL_EMP;
 	} else if (c == '\'' && (data->fl & IN_ATTR_VAL_APOS)) { // End of apos
 		data->fl = (data->fl | IN_ATTR_VAL_EMP) & ~IN_ATTR_VAL_APOS;
-	} else if (c == '/' && (data->fl & IN_TAG_NAME)) { // End tag
+	} else if (c == '/' && data->fl && !(data->fl & IN_QUOTE)) { // End tag
 		data->fl |= IN_ENDTAG;
 		if (*data->el_n && *(strchr(data->el_n, 0) - 1) == '/')
 			*(strchr(data->el_n, 0) - 1) = 0;

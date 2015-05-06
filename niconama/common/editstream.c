@@ -217,7 +217,13 @@ static form_t *geteditstream(const char *p, const char *b) {
     send(sock, b, strlen(b), 0);
     send(sock, "\r\nContent-Length: ", 18, 0);
     char tmp[8];
-    sprintf(tmp, "%I64u", strlen(p));
+    sprintf(tmp, "%"
+#if _WIN32
+	"I"
+#else
+	"z"
+#endif
+	"u", strlen(p));
     send(sock, tmp, strlen(tmp), 0);
   }
   send(sock, "\r\n\r\n", 4, 0);
@@ -238,7 +244,7 @@ static form_t *geteditstream(const char *p, const char *b) {
     if (bufi >= bufl) buf = realloc(buf, bufl <<= 1);
   }
   form_t *ret = get_main(buf, bufi);
-  closesocket(sock);
+  close(sock);
   ret->internal_buffer = buf;
   return ret;
 }
@@ -298,8 +304,7 @@ static void mpfd_done(char **p, int *l, const char *b) {
 }
 
 int main() {
-	WSADATA wsad;
-	WSAStartup(WINSOCK_VERSION, &wsad);
+	WS2U
 	form_t *ret = printeditstream(NULL, NULL);
 	char *p = NULL;
 	int l = 0;
@@ -325,6 +330,6 @@ int main() {
 	form_t *ret2 = printeditstream(p, b);
     freeeditstream(ret);
     freeeditstream(ret2);
-	WSACleanup();
+	WS2U
 	return 0;
 }

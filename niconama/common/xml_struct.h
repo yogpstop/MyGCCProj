@@ -24,7 +24,7 @@ extern "C" {
 #define GPS_LNG(var); STRUCT_SET_INT(struct getplayerstatus, var);
 #define IF_GPS_FREE(var); STRUCT_SAFE_FREE(gps, var);
 
-struct getplayerstatus* getplayerstatus();
+struct getplayerstatus* getplayerstatus(char*);
 void freegetplayerstatus(struct getplayerstatus*);
 
 struct getplayerstatus {
@@ -50,8 +50,8 @@ struct getplayerstatus {
 	char* rtmp_url;
 	char* rtmp_ticket;
 	char* ms_addr;
-	uint16_t ms_port;
-	long ms_thread;
+	char* ms_port;
+	char* ms_thread;
 	char* category;
 };
 
@@ -65,6 +65,36 @@ struct getpublishstatus {
 	char* rtmp_ticket;
 	char* rtmp_stream;
 	int bitrate;
+};
+
+struct getthreads* getthreads(char*);
+void freegetthreads(struct getthreads*);
+
+struct ms_thread {
+	char* host;
+	char* port;
+	char* tid;
+};
+
+struct getthreads {
+	char* com;
+	int l;
+	struct ms_thread* t;
+};
+
+void getcomment(char*, char*, char*);
+
+struct chat {
+	uint32_t no;
+	int64_t vpos;
+	time_t date;
+	uint64_t date_usec;
+	char *mail;
+	char *user_id;
+	int anonymity;
+	int premium;
+	int scores;
+	char *name;
 };
 
 #ifdef __cplusplus

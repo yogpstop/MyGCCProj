@@ -46,7 +46,7 @@ static void processalert(char *addr, char *port, char *tid) {
     if(recvdata != '\0')
       xml_next(recvdata,&data);
   }
-  closesocket(sock);
+  close(sock);
 }
 
 static void callback2(void *u, char *el_n, char*el_v) {
@@ -86,14 +86,13 @@ void getalertdata(){
     else if(recvdata != '\r')
       http = 0;
   }
-  closesocket(sock);
+  close(sock);
   processalert(user[0], user[1], user[2]);
 }
 
 int main() {
-	WSADATA wsad;
-	WSAStartup(WINSOCK_VERSION, &wsad);
+	WS2I
 	getalertdata();
-	WSACleanup();
+	WS2U
 	return 0;
 }
