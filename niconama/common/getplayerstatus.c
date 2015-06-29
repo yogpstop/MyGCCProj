@@ -104,7 +104,7 @@ struct getplayerstatus* getplayerstatus(char* liveid){
     else if (recvdata != '\r')
       http = 0;
   }
-  close(sock);
+  CLOSESOCKET(sock);
   return gps;
 }
 /*

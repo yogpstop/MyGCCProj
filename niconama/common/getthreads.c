@@ -74,7 +74,7 @@ struct getthreads* getthreads(char* liveid){
     else if (recvdata != '\r')
       http = 0;
   }
-  close(sock);
+  CLOSESOCKET(sock);
   gts->t = realloc(gts->t, --gts->l * sizeof(struct ms_thread));
   return gts;
 }

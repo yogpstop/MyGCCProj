@@ -13,6 +13,7 @@
 #include <ws2tcpip.h>
 #define WS2I WSADATA wsad; WSAStartup(WINSOCK_VERSION, &wsad);
 #define WS2U WSACleanup();
+#define CLOSESOCKET closesocket
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -20,6 +21,7 @@
 #include <netdb.h>
 #define WS2I
 #define WS2U
+#define CLOSESOCKET close
 #endif
 
 #define PORT 0x1

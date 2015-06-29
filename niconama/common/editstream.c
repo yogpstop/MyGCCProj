@@ -244,7 +244,7 @@ static form_t *geteditstream(const char *p, const char *b) {
     if (bufi >= bufl) buf = realloc(buf, bufl <<= 1);
   }
   form_t *ret = get_main(buf, bufi);
-  close(sock);
+  CLOSESOCKET(sock);
   ret->internal_buffer = buf;
   return ret;
 }

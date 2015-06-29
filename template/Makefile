@@ -1,8 +1,18 @@
-name = win_gui
-all:
-	rm -f ../dist/$(name).exe
-	gcc -Wall -c -O3 -o $(name).o $(name).c
-	windres --input-format=rc --output-format=coff -o $(name).res $(name).rc
-	gcc -s -mwindows -o ../dist/$(name).exe $(name).o $(name).res
-	rm -f $(name).o $(name).res
-
+NAME := win_gui
+CC := gcc
+CCLD := $(CC)
+WRES := windres
+CFLAGS := -Wall -Werror -O3 -march=native -flto -pipe
+LDFLAGS := -s
+all: ../dist/$(NAME).exe
+-include *.d
+../dist/$(NAME).exe: $(NAME).res $(NAME).o
+	$(CCLD) -o $@ -mwindows $(LDFLAGS) $^
+.rc.res:
+	$(WRES) -o $@ --input-format=rc --output-format=coff $<
+.c.o:
+	$(CC) -o $@ -c -MMD -MP $(CFLAGS) $<
+clean:
+	rm -f *.d *.o *.res ../dist/$(NAME).exe
+.PHONY: clean
+.SUFFIXES: .rc .res

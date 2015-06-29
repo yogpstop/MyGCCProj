@@ -1,4 +1,6 @@
 /dist/
 *.d
 *.o
+*.res
 *.exe
+*.dll

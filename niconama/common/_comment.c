@@ -45,7 +45,7 @@ void getcomment(char *addr, char *port, char *tid) {
   int sock = create_socket(addr, port, SOCK_STREAM);
   send(sock, "<thread thread=\"", 16, 0);
   send(sock, tid, strlen(tid), 0);
-  send(sock, "\" res_from=\"-1\" version=\"20061206\" scores=\"1\" />", 49, 0);
+  send(sock, "\" res_from=\"1\" version=\"20061206\" scores=\"1\" />", 48, 0);
   char recvdata;
   struct xml data;
   struct chat c;
@@ -60,7 +60,7 @@ void getcomment(char *addr, char *port, char *tid) {
     if (recvdata != '\0')
       xml_next(recvdata, &data);
   }
-  close(sock);
+  CLOSESOCKET(sock);
 }
 
 int main(int argc, char **argv) {

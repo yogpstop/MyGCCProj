@@ -1,5 +1,6 @@
 #ifndef _UOSU_OSU_H
 #define _UOSU_OSU_H
+#include <stddef.h>
 #include "curve.h"
 
 #define OSU_OBJ_TYPE_NORMAL 1

@@ -46,7 +46,7 @@ static void processalert(char *addr, char *port, char *tid) {
     if(recvdata != '\0')
       xml_next(recvdata,&data);
   }
-  close(sock);
+  CLOSESOCKET(sock);
 }
 
 static void callback2(void *u, char *el_n, char*el_v) {
@@ -86,7 +86,7 @@ void getalertdata(){
     else if(recvdata != '\r')
       http = 0;
   }
-  close(sock);
+  CLOSESOCKET(sock);
   processalert(user[0], user[1], user[2]);
 }
 

@@ -24,26 +24,23 @@ int WINAPI WinMain(HINSTANCE hCurInst, HINSTANCE hPrevInst, LPSTR lpsCmdLine, in
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = WndProc;
 	wc.hInstance = hCurInst;
-	wc.hIcon = (HICON)LoadImage(NULL,IDI_APPLICATION,IMAGE_ICON,0,0,LR_DEFAULTSIZE|LR_SHARED);
-	wc.hCursor = (HCURSOR)LoadImage(NULL,IDC_ARROW,IMAGE_CURSOR,0,0,LR_DEFAULTSIZE|LR_SHARED);
-	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	wc.hIcon = (HICON) LoadImage(NULL, IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	wc.hCursor = (HCURSOR) LoadImage(NULL, IDC_ARROW, IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	wc.hbrBackground = (HBRUSH) COLOR_WINDOW;
 	wc.lpszClassName = szClassName;
-	wc.hIconSm = (HICON)LoadImage(NULL,IDI_APPLICATION,IMAGE_ICON,0,0,LR_DEFAULTSIZE|LR_SHARED);
-	if (!RegisterClassEx(&wc))
-		return FALSE;
+	wc.hIconSm = (HICON) LoadImage(NULL, IDI_APPLICATION, IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
+	if (!RegisterClassEx(&wc)) return FALSE;
 	
-	HWND hWnd = CreateWindowEx(0,szClassName,TEXT("Title bar"),WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,NULL,NULL,hCurInst,NULL);
-	if (!hWnd)
-		return FALSE;
-	ShowWindow(hWnd,nCmdShow);
+	HWND hWnd = CreateWindowEx(0, szClassName, TEXT("Title bar"), WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hCurInst, NULL);
+	if (!hWnd) return FALSE;
+	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 	
 	while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0) {
-		if(bRet == -1)
-			break;
+		if (bRet == -1) break;
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	return (int)msg.wParam;
+	return (int) msg.wParam;
 }

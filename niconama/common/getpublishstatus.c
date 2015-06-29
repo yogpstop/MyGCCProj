@@ -54,7 +54,7 @@ struct getpublishstatus* getpublishstatus(){
     else if (recvdata != '\r')
       http = 0;
   }
-  close(sock);
+  CLOSESOCKET(sock);
   return gbs;
 }
 
