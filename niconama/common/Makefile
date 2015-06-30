@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Werror -O3 -march=native -pipe -flto
-LD=gcc
+CCLD=gcc
 LDFLAGS=-s
 
 SRCS:=$(wildcard *.c)
@@ -25,19 +25,19 @@ all: alert$(EXT) getpublishstatus$(EXT) editstream$(EXT) comment$(EXT) getthread
 -include $(DEPS)
 
 getpublishstatus$(EXT): getpublishstatus.o xml.o n_socket.o cookie.o
-	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+	$(CCLD) -o $@ $(LLDFLAGS) $^ $(LIBS)
 getplayerstatus$(EXT): getplayerstatus.o xml.o n_socket.o cookie.o
-	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+	$(CCLD) -o $@ $(LLDFLAGS) $^ $(LIBS)
 getthreads$(EXT): getthreads.o xml.o n_socket.o cookie.o
-	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+	$(CCLD) -o $@ $(LLDFLAGS) $^ $(LIBS)
 editstream$(EXT): editstream.o xml.o n_socket.o cookie.o
-	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+	$(CCLD) -o $@ $(LLDFLAGS) $^ $(LIBS)
 alert$(EXT): _alert.o xml.o n_socket.o
-	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+	$(CCLD) -o $@ $(LLDFLAGS) $^ $(LIBS)
 comment$(EXT): _comment.o getplayerstatus.o xml.o n_socket.o cookie.o
-	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+	$(CCLD) -o $@ $(LLDFLAGS) $^ $(LIBS)
 fixedhn$(EXT): fixedhn.o xml.o
-	$(LD) -o $@ $(LLDFLAGS) $^ $(LIBS)
+	$(CCLD) -o $@ $(LLDFLAGS) $^ $(LIBS)
 .c.o:
 	$(CC) -c -MMD -MP -o $@ $(CCFLAGS) $<
 clean:

@@ -1,0 +1,53 @@
+diff --git a/configure b/configure
+index 6767c6a..a672882 100755
+--- a/configure
++++ b/configure
+@@ -1208,6 +1208,7 @@ EXTERNAL_LIBRARY_LIST="
+     openal
+     opencl
+     openssl
++    vfw
+     x11grab
+     zlib
+ "
+@@ -1812,6 +1813,7 @@ jpegls_decoder_select="dsputil golomb hpeldsp exif"
+ jpegls_encoder_select="golomb"
+ jv_decoder_select="dsputil"
+ lagarith_decoder_select="dsputil"
++lagarith_encoder_deps="vfw"
+ ljpeg_encoder_select="aandcttables mpegvideoenc"
+ loco_decoder_select="golomb"
+ mdec_decoder_select="dsputil error_resilience mpegvideo"
+@@ -4185,6 +4187,7 @@ enabled frei0r            && { check_header frei0r.h || die "ERROR: frei0r.h hea
+ enabled gnutls            && require_pkg_config gnutls gnutls/gnutls.h gnutls_global_init
+ enabled libiec61883       && require libiec61883 libiec61883/iec61883.h iec61883_cmp_connect -lraw1394 -lavc1394 -lrom1394 -liec61883
+ enabled libaacplus        && require "libaacplus >= 2.0.0" aacplus.h aacplusEncOpen -laacplus
++enabled vfw               && add_extralibs -lvfw32
+ enabled libass            && require_pkg_config libass ass/ass.h ass_library_init
+ enabled libbluray         && require libbluray libbluray/bluray.h bd_open -lbluray
+ enabled libcelt           && require libcelt celt/celt.h celt_decode -lcelt0 &&
+diff --git a/libavcodec/Makefile b/libavcodec/Makefile
+index f5ce4e1..59b1cff 100644
+--- a/libavcodec/Makefile
++++ b/libavcodec/Makefile
+@@ -259,6 +259,7 @@ OBJS-$(CONFIG_JV_DECODER)              += jvdec.o
+ OBJS-$(CONFIG_KGV1_DECODER)            += kgv1dec.o
+ OBJS-$(CONFIG_KMVC_DECODER)            += kmvc.o
+ OBJS-$(CONFIG_LAGARITH_DECODER)        += lagarith.o lagarithrac.o
++OBJS-$(CONFIG_LAGARITH_ENCODER)        += lagarith_enc.o
+ OBJS-$(CONFIG_LJPEG_ENCODER)           += ljpegenc.o mjpegenc.o mjpeg.o
+ OBJS-$(CONFIG_LOCO_DECODER)            += loco.o
+ OBJS-$(CONFIG_MACE3_DECODER)           += mace.o
+diff --git a/libavcodec/allcodecs.c b/libavcodec/allcodecs.c
+index c930cc7..91e6d27 100644
+--- a/libavcodec/allcodecs.c
++++ b/libavcodec/allcodecs.c
+@@ -178,7 +178,7 @@ void avcodec_register_all(void)
+     REGISTER_DECODER(JV,                jv);
+     REGISTER_DECODER(KGV1,              kgv1);
+     REGISTER_DECODER(KMVC,              kmvc);
+-    REGISTER_DECODER(LAGARITH,          lagarith);
++    REGISTER_ENCDEC (LAGARITH,          lagarith);
+     REGISTER_ENCODER(LJPEG,             ljpeg);
+     REGISTER_DECODER(LOCO,              loco);
+     REGISTER_DECODER(MDEC,              mdec);

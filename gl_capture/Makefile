@@ -1,21 +1,42 @@
-CC:=x86_64-w64-mingw32-gcc
+CC32:=i686-w64-mingw32-gcc
+CCLD32:=$(CC32)
+CC64:=x86_64-w64-mingw32-gcc
+CCLD64:=$(CC64)
+CC:=$(CC64)
+CCLD:=$(CCLD64)
 CFLAGS:=-Wall -Werror -O3 -march=native -pipe -flto
-CLDFLAGS:=-s
+LDFLAGS:=-s -static-libgcc
 MH_SRCS:=$(wildcard minhook/src/*.c minhook/src/HDE/*.c)
-MH_OBJS:=$(MH_SRCS:%.c=%.o)
-MH_DEPS:=$(MH_SRCS:%.c=%.d)
+MH_OBJS32:=$(MH_SRCS:%.c=%32.o)
+MH_OBJS64:=$(MH_SRCS:%.c=%64.o)
+MH_DEPS32:=$(MH_SRCS:%.c=%32.d)
+MH_DEPS64:=$(MH_SRCS:%.c=%64.d)
 
-all: glc.dll glc.exe core.exe dump.exe
-glc.dll: apih.o dbg.o $(MH_OBJS)
-	$(CC) -shared -o $@ $(CLDFLAGS) $^ -lopengl32
-glc.exe: dlli.o vfw.o avi.o dbg.o
-	$(CC) -o $@ $(CLDFLAGS) $^ -lvfw32
+all: hook32.dll hook64.dll hook32.exe hook64.exe glc.exe core.exe dump.exe
+
+-include $(MH_DEPS32) $(MH_DEPS64)
+
+hook32.dll: apih32.o dbg32.o $(MH_OBJS32)
+	$(CCLD32) -shared -o $@ $(LDFLAGS) $^ -lopengl32
+hook64.dll: apih64.o dbg64.o $(MH_OBJS64)
+	$(CCLD64) -shared -o $@ $(LDFLAGS) $^ -lopengl32
+hook32.exe: injector32.o
+	$(CCLD32) -o $@ $(LDFLAGS) $^
+hook64.exe: injector64.o
+	$(CCLD64) -o $@ $(LDFLAGS) $^
+glc.exe: main.o vfw.o avi.o dbg.o
+	$(CCLD) -o $@ $(LDFLAGS) $^ -lvfw32
 core.exe: coreaudio.o
-	$(CC) -o $@ $(CLDFLAGS) $^ -lole32
+	$(CCLD) -o $@ $(LDFLAGS) $^ -lole32
 dump.exe: dump.o
-	$(CC) -o $@ $(CLDFLAGS) $^
+	$(CCLD) -o $@ $(LDFLAGS) $^
 .c.o:
 	$(CC) -c -MMD -MP -Iminhook/include -o $@ $(CFLAGS) $<
+.c32.o:
+	$(CC32) -c -MMD -MP -Iminhook/include -o $@ $(CFLAGS) $<
+.c64.o:
+	$(CC64) -c -MMD -MP -Iminhook/include -o $@ $(CFLAGS) $<
 clean:
 	rm -f {,minhook/src/{,HDE/}}*.{o,d} *.exe *.dll
 .PHONY: clean
+.SUFFIXES: 32.o 64.o

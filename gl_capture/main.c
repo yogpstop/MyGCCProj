@@ -5,26 +5,32 @@
 #include "main.h"
 #include "dbg.h"
 
-static void dll_inject(char *dll, int pid) {
-	HANDLE proc = OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_WRITE
-			| PROCESS_CREATE_THREAD, FALSE, pid);
-	void *lla = GetProcAddress(GetModuleHandleA("kernel32.dll"),
-			"LoadLibraryA");
-	void *vm = VirtualAllocEx(proc, NULL, strlen(dll) + 1,
-			MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	WriteProcessMemory(proc, vm, dll, strlen(dll) + 1, NULL);
-	HANDLE h = CreateRemoteThread(proc, NULL, 0, lla, vm, 0, NULL);
-	WaitForSingleObject(h, INFINITE);
-	CloseHandle(h);
-	VirtualFreeEx(proc, vm, 0, MEM_RELEASE);
-	//FIXME GetModuleHandleA GetProcAddress (free?)
-	CloseHandle(proc);
-}
-
 int main(int argc, char **argv) {
-	if (argc != 3) return 1;
-	DWORD pid = strtoul(argv[2], NULL, 10);
-	dll_inject(argv[1], pid);
+	if (argc != 2) return 1;
+	DWORD pid = strtoul(argv[1], NULL, 10);
+	char *path = malloc(MAX_PATH);
+	GetModuleFileNameA(NULL, path, MAX_PATH);
+	*strrchr(path, '\\') = 0;
+	HANDLE proc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
+	BOOL w32;
+#if defined(_WIN64)
+	IsWow64Process(proc, &w32);
+#elif defined(_WIN32)
+	w32 = TRUE;
+#endif
+	CloseHandle(proc);
+	const char *bit = w32 ? "32" : "64";
+	char *full = malloc((strlen(path) + 11) * 2 + 17);
+	sprintf(full, "\"%s\\hook%s.exe\" \"%s\\hook%s.dll\" %I32u", path, bit, path, bit, pid);
+	STARTUPINFO si = {};
+	si.cb = sizeof(STARTUPINFO);
+	PROCESS_INFORMATION pi = {};
+	CreateProcess(NULL, full, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+	CloseHandle(pi.hThread);
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	CloseHandle(pi.hProcess);
+	free(full);
+	free(path);
 	HANDLE mutex[2], event;
 	char tmp[32], *cptr;
 	sprintf(tmp, "GLC_SM_%I32u_", pid);
