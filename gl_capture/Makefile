@@ -16,10 +16,10 @@ all: hook32.dll hook64.dll hook32.exe hook64.exe glc.exe core.exe dump.exe
 
 -include $(MH_DEPS32) $(MH_DEPS64)
 
-hook32.dll: apih32.o dbg32.o $(MH_OBJS32)
-	$(CCLD32) -shared -o $@ $(LDFLAGS) $^ -lopengl32
-hook64.dll: apih64.o dbg64.o $(MH_OBJS64)
-	$(CCLD64) -shared -o $@ $(LDFLAGS) $^ -lopengl32
+hook32.dll: hook32.o hook_ogl32.o hook_d3d932.o dbg32.o $(MH_OBJS32)
+	$(CCLD32) -shared -o $@ $(LDFLAGS) $^
+hook64.dll: hook64.o hook_ogl64.o hook_d3d964.o dbg64.o $(MH_OBJS64)
+	$(CCLD64) -shared -o $@ $(LDFLAGS) $^
 hook32.exe: injector32.o
 	$(CCLD32) -o $@ $(LDFLAGS) $^
 hook64.exe: injector64.o

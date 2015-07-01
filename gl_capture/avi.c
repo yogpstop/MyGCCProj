@@ -6,7 +6,7 @@ avi_str *avi_init(char *out, void *bih, LONG bihl) {
 	AVIFileInit();
 	AVIFileOpenA(&r->fp, out, OF_CREATE | OF_WRITE, NULL);
 	AVISTREAMINFO si;
-	memset(&si, 0, sizeof(AVISTREAMINFO));
+	ZeroMemory(&si, sizeof(AVISTREAMINFO));
 	si.fccType = streamtypeVIDEO;
 	si.fccHandler = mmioFOURCC('U', 'L', 'R', 'G');
 	si.dwScale = 1;

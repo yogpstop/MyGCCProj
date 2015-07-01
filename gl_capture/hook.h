@@ -1,0 +1,13 @@
+extern void *fm_buf;
+extern LARGE_INTEGER qpc_real, qpc_target;
+extern int interval;
+extern HANDLE eWake;
+extern int gidx;
+extern void *vatex;
+extern CRITICAL_SECTION lock[BUF_SIZE];
+extern LARGE_INTEGER qpc[BUF_SIZE];
+extern RECT rect[BUF_SIZE];
+void hook_init_ogl();
+void hook_exit_ogl();
+void hook_init_d3d9();
+void hook_exit_d3d9();

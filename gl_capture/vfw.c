@@ -10,8 +10,8 @@ vfw_str *vfw_init() {
 	DWORD res = ICCompressGetFormat(r->hic, NULL, NULL);
 	r->bihi = malloc(res);
 	r->biho = malloc(res);
-	memset(r->bihi, 0, res);
-	memset(r->biho, 0, res);
+	ZeroMemory(r->bihi, res);
+	ZeroMemory(r->biho, res);
 	r->bihi->biSize = sizeof(BITMAPINFOHEADER);
 	r->bihi->biWidth = 1280;
 	r->bihi->biHeight = 720;
