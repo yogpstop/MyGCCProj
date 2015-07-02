@@ -13,8 +13,8 @@ vfw_str *vfw_init() {
 	ZeroMemory(r->bihi, res);
 	ZeroMemory(r->biho, res);
 	r->bihi->biSize = sizeof(BITMAPINFOHEADER);
-	r->bihi->biWidth = 1280;
-	r->bihi->biHeight = 720;
+	r->bihi->biWidth = GLC_MAX_WIDTH;
+	r->bihi->biHeight = GLC_MAX_HEIGHT;
 	r->bihi->biPlanes = 1;
 	r->bihi->biBitCount = 32;
 	r->bihi->biCompression = BI_RGB;

@@ -12,7 +12,7 @@ avi_str *avi_init(char *out, void *bih, LONG bihl) {
 	si.dwScale = 1;
 	si.dwRate = GLC_FPS;
 	si.dwQuality = -1;
-	SetRect(&si.rcFrame, 0, 0, 1280, 720);
+	SetRect(&si.rcFrame, 0, 0, GLC_MAX_WIDTH, GLC_MAX_HEIGHT);
 	AVIFileCreateStream(r->fp, &r->sp, &si);
 	AVIStreamSetFormat(r->sp, 0, bih, bihl);
 	return r;

@@ -1,3 +1,4 @@
+extern HINSTANCE hInst;
 extern void *fm_buf;
 extern LARGE_INTEGER qpc_real, qpc_target;
 extern int interval;

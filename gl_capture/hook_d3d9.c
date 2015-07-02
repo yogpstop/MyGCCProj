@@ -4,17 +4,14 @@
 #include "dbg.h"
 #include "hook.h"
 
-HANDLE dll;
+static HANDLE dll;
 typedef IDirect3D9* __stdcall (*DIRECT3DCREATE9PROC)(UINT);
 typedef HRESULT __stdcall (* PRESENTPROC)(IDirect3DDevice9*, const RECT*, const RECT*, HWND, const RGNDATA*);
 typedef HRESULT __stdcall (*   RESETPROC)(IDirect3DDevice9*, D3DPRESENT_PARAMETERS*);
-typedef HRESULT __stdcall (*ENDSCENEPROC)(IDirect3DDevice9*);
 static  PRESENTPROC tPresent;
 static  PRESENTPROC oPresent;
 //static    RESETPROC tReset;
 //static    RESETPROC oReset;
-//static ENDSCENEPROC tEndScene;
-//static ENDSCENEPROC oEndScene;
 
 static IDirect3DSurface9 **rts;
 static IDirect3DSurface9 **oss;
@@ -78,7 +75,7 @@ static HRESULT __stdcall dPresent(IDirect3DDevice9 *this, const RECT *src_rect,
 
 static HWND dwnd;
 
-static DWORD WINAPI WndThread(LPVOID hInst) {
+static DWORD WINAPI WndThread(LPVOID event) {
 	WNDCLASS wc;
 	ZeroMemory(&wc, sizeof(WNDCLASS));
 	wc.style = CS_OWNDC;
@@ -86,8 +83,9 @@ static DWORD WINAPI WndThread(LPVOID hInst) {
 	wc.lpfnWndProc = DefWindowProc;
 	wc.lpszClassName = "GLC_DUMMY_WNDCLASS";
 	RegisterClass(&wc);
-	CreateWindow(wc.lpszClassName, NULL, WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+	dwnd = CreateWindow(wc.lpszClassName, NULL, WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
 			0, 0, 1, 1, NULL, NULL, hInst, NULL);
+	SetEvent(event);
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg); DispatchMessage(&msg);
@@ -96,10 +94,13 @@ static DWORD WINAPI WndThread(LPVOID hInst) {
 }
 
 void hook_init_d3d9() {
-	CreateThread(NULL, 0, WndThread, NULL, 0, NULL);//TODO hInst
-	DBG_PERF_INIT(11, 7, GLC_FPS * 60 * 60);
 	dll = GetModuleHandleA("d3d9.dll");
 	if (!dll) return;
+	DBG_PERF_INIT(11, 7, GLC_FPS * 60 * 60);
+	HANDLE event = CreateEvent(NULL, TRUE, FALSE, NULL);
+	CreateThread(NULL, 0, WndThread, event, 0, NULL);
+	WaitForSingleObject(event, INFINITE);
+	CloseHandle(event);
 	DIRECT3DCREATE9PROC create = (DIRECT3DCREATE9PROC) GetProcAddress(dll, "Direct3DCreate9");
 	IDirect3D9 *obj = create(D3D_SDK_VERSION);
 	IDirect3DDevice9 *device;
@@ -123,4 +124,5 @@ void hook_exit_d3d9() {
 	if (!dll) return;
 	MH_DisableHook(tPresent);
 	MH_RemoveHook(tPresent);
+	DestroyWindow(dwnd);
 }

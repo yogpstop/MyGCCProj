@@ -6,6 +6,9 @@
 #include "dbg.h"
 #include "hook.h"
 
+HINSTANCE hInst;
+static HANDLE v_t_copy, v_t_init;
+
 static HANDLE mutex[BUF_SIZE], event;
 static HANDLE file_map;
 void *fm_buf;
@@ -55,13 +58,27 @@ static DWORD WINAPI copy_thread(LPVOID lpp) {
 	return 0;
 }
 
+static DWORD WINAPI init_thread(LPVOID mainThread) {
+	WaitForSingleObject(mainThread, INFINITE);
+	CloseHandle(mainThread);
+	QueryPerformanceFrequency(&qpc_real);
+	interval = qpc_real.QuadPart / GLC_FPS;
+	QueryPerformanceCounter(&qpc_target);
+	DBG_PERF_INIT(2, 7, GLC_FPS * 60 * 60);
+	eBreak   = CreateEvent(NULL,  TRUE, FALSE, NULL);
+	eWake    = CreateEvent(NULL,  TRUE, FALSE, NULL);
+	InitializeCriticalSection(lock + 0);
+	InitializeCriticalSection(lock + 1);
+	InitializeCriticalSection(lock + 2);
+	v_t_copy = CreateThread(NULL, 0, copy_thread, NULL ,0, NULL);
+	MH_Initialize();
+	hook_init_ogl();
+	hook_init_d3d9();
+	return 0;
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
-	static HANDLE thread;
 	if (fdwReason == DLL_PROCESS_ATTACH) {
-		QueryPerformanceFrequency(&qpc_real);
-		interval = qpc_real.QuadPart / GLC_FPS;
-		QueryPerformanceCounter(&qpc_target);
-		DBG_PERF_INIT(2, 7, GLC_FPS * 60 * 60);
 		char tmp[32], *cptr;
 		sprintf(tmp, "GLC_SM_%I32u_", GetCurrentProcessId());
 		cptr = tmp + strlen(tmp);
@@ -76,24 +93,19 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 		strcpy(cptr, "FILE");
 		file_map = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, GLC_MAX_SIZE * BUF_SIZE + 1, tmp);
 		fm_buf = MapViewOfFile(file_map, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-		eBreak   = CreateEvent(NULL,  TRUE, FALSE, NULL);
-		eWake    = CreateEvent(NULL,  TRUE, FALSE, NULL);
-		InitializeCriticalSection(lock + 0);
-		InitializeCriticalSection(lock + 1);
-		InitializeCriticalSection(lock + 2);
-		thread = CreateThread(NULL, 0, copy_thread, NULL ,0, NULL);
-		MH_Initialize();
-		hook_init_ogl();
-		//hook_init_d3d9();
+		hInst = hinstDLL;
+		v_t_init = CreateThread(NULL, 0, init_thread, OpenThread(SYNCHRONIZE, FALSE, GetCurrentThreadId()), 0, NULL);
 	} else if (fdwReason == DLL_PROCESS_DETACH) {
-		//hook_exit_d3d9();
+		WaitForSingleObject(v_t_init, INFINITE);
+		CloseHandle(v_t_init);
+		hook_exit_d3d9();
 		hook_exit_ogl();
 		MH_Uninitialize();
 		SetEvent(eBreak);
 		while (WaitForSingleObject(eWake, 10) == WAIT_OBJECT_0);
 		SetEvent(eWake);
-		WaitForSingleObject(thread, INFINITE);
-		CloseHandle(thread);
+		WaitForSingleObject(v_t_copy, INFINITE);
+		CloseHandle(v_t_copy);
 		DeleteCriticalSection(lock + 2);
 		DeleteCriticalSection(lock + 1);
 		DeleteCriticalSection(lock + 0);
