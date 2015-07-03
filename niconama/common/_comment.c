@@ -1,4 +1,5 @@
 #include "main.h"
+#include "n_sock.h"
 #include "xml.h"
 #include "xml_struct.h"
 

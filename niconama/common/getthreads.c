@@ -1,7 +1,8 @@
 #include "main.h"
+#include "n_sock.h"
+#include "cookie.h"
 #include "xml_struct.h"
 #include "xml.h"
-#include "cookie.h"
 
 static void callback3(void *user, char *el_n, char *el_v) {
 	struct getthreads *gts = user;

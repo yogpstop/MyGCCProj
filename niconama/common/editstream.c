@@ -1,7 +1,8 @@
+#include <pcre.h>
 #include "main.h"
 #include "xml.h"
+#include "n_sock.h"
 #include "cookie.h"
-#include <pcre.h>
 
 //TODO input{file,reset,button,image,submit} button
 

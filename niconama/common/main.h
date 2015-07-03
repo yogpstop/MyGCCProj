@@ -8,21 +8,6 @@
 // Unix Standard Library
 #include <unistd.h>
 #include <sys/types.h>
-#if _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#define WS2I WSADATA wsad; WSAStartup(WINSOCK_VERSION, &wsad);
-#define WS2U WSACleanup();
-#define CLOSESOCKET closesocket
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#define WS2I
-#define WS2U
-#define CLOSESOCKET close
-#endif
 
 #define PORT 0x1
 #define MS 0x2
@@ -33,5 +18,3 @@
 #define ATTR 0x40
 #define BASE_TIME 0x80
 #define START_TIME 0x100
-
-int create_socket(char*, char*, int);

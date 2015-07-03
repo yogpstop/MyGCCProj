@@ -1,4 +1,10 @@
-#include "main.h"
+#if _WIN32
+#include <ws2tcpip.h>
+#else
+#include <netdb.h>
+#include <unistd.h>
+#endif
+#include "n_sock.h"
 
 int create_socket(char *host, char *prot, int stype) {
 	struct addrinfo *ais, *aip;
