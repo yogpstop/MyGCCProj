@@ -1,27 +1,37 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-void *riff_read(FILE *f, int *size, size_t from, size_t to) {
-	uint32_t rbuf[11] = {};
-	void *data = NULL, *ptr;
+#include "main.h"
+#define CHANNELS 2
+#define BITS 16
+// multiple data tag is unsupported
+void riff_read(FILE *f, buf_str *ctx) {
+	uint32_t rbuf[2] = {};
+	void *ptr;
 	int rem = 0, read;
-	if (fread(rbuf, 44, 1, f) == 1) {
-		rem = rbuf[10];
-		if ((rbuf[1] - 36) == rem) {
-			fseek(f, from, SEEK_CUR);
-			if (rem > to) rem = to;
-			rem -= from;
-			rbuf[10] = rem;
-			ptr = data = malloc(rem);
-			if (!data) { fclose(f); return NULL; }
-			while((read = fread(ptr, 1, rem, f)) >= 0) {
-				ptr += read;
-				rem -= read;
-				if (rem <= 0) break;
-			}
+	if (fseek(f, 8, SEEK_CUR)) goto Lexit;
+	do {
+		if (fread(rbuf, 8, 1, f) != 1) goto Lexit;
+	} while (rbuf[0] != 0x61746164 && !fseek(f, rbuf[1], SEEK_CUR));
+	if (fseek(f, ctx->from, SEEK_CUR)) goto Lexit;
+	if (rbuf[1] > ctx->to) rbuf[1] = ctx->to;
+	if (rbuf[1] < ctx->from) goto Lexit;
+	rbuf[1] -= ctx->from;
+	while (rbuf[1]) {
+		rem = (ctx->p.period - ctx->cur_period) * CHANNELS * BITS / 8;
+		ptr = ctx->p.buf + (ctx->cur_id * ctx->p.period + ctx->cur_period) * CHANNELS * BITS / 8;
+		while ((read = fread(ptr, 1, rem > rbuf[1] ? rbuf[1] : rem, f)) > 0) {
+			ptr += read; rem -= read; rbuf[1] -= read;
 		}
+		if (rem <= 0) {
+			ctx->cur_id++;
+			ctx->cur_id = ctx->cur_id & ctx->p.buf_max;
+			MUTEX_LOCK(ctx->p.mutex + ctx->cur_id);
+			MUTEX_UNLOCK(ctx->p.mutex + ((ctx->cur_id - 1) & ctx->p.buf_max));
+			ctx->cur_period = 0;
+		} else ctx->cur_period = ctx->p.period - rem / (CHANNELS * BITS / 8);
+		if (feof(f)) break;
 	}
+Lexit:
 	fclose(f);
-	*size = rbuf[10] - rem;
-	return data;
 }

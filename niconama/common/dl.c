@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "n_sock.h"
 #include "cookie.h"
 #define CACHE_DIR "V:\\nv\\"

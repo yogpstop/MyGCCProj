@@ -2,7 +2,7 @@ CC := gcc
 CCLD := $(CC)
 CFLAGS := -Wall -Werror -march=native -O3 -pipe -flto
 LDFLAGS := -s
-LIBS := -lFLAC -lasound -lpthread
+LIBS := -lFLAC -lmpg123
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:%.c=%.o)
 DEPS := $(SRCS:%.c=%.d)
@@ -10,6 +10,11 @@ DEPS := $(SRCS:%.c=%.d)
 ifeq ($(SYS), mingw)
 EXT:=.exe
 LDFLAGS+=-static
+LIBS+=-lole32
+SND:=mmdev
+else
+LIBS+=-lasound -lpthread
+SND:=alsa
 endif
 
 all: bgm_player$(EXT)
@@ -19,7 +24,7 @@ all: bgm_player$(EXT)
 bgm_player$(EXT): $(OBJS)
 	$(CCLD) -o $@ $(LDFLAGS) $^ $(LIBS)
 .c.o:
-	$(CC) -o $@ -c -MMD -MP $(CFLAGS) $<
+	$(CC) -DSNDAPI=$(SND) -DSND$(SND) -o $@ -c -MMD -MP $(CFLAGS) $<
 clean:
 	rm -f *.d *.o bgm_player$(EXT)
 

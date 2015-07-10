@@ -1,51 +1,40 @@
 #include <FLAC/stream_decoder.h>
 #include <stdlib.h>
-static void *data, *ptr;
-static int len, rem, channels, bps;
-static size_t gf, gt;
+#include "main.h"
+#define CHANNELS 2
+#define BITS 16
+static void ecb(const FLAC__StreamDecoder *d,
+		FLAC__StreamDecoderErrorStatus s, void *c) {
+}
 static void mdcb(const FLAC__StreamDecoder *d,
 		const FLAC__StreamMetadata *m, void *c) {
-	if (m->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		channels = m->data.stream_info.channels;
-		bps = m->data.stream_info.bits_per_sample / 8;
-		rem = len = m->data.stream_info.total_samples * channels * bps;
-		data = ptr = malloc(len); // TODO: allocation failed
-	}
 }
 static FLAC__StreamDecoderWriteStatus wcb(const FLAC__StreamDecoder *d,
 		const FLAC__Frame *f, const FLAC__int32* const b[], void *c) {
-	int i, j, k;
-	for(i = 0; i < f->header.blocksize; i++) {
-		if (gf > 0) {
-			gf--;
-			continue;
-		}
-		gt--;
-		if (gt < 0) {
-			break;
-		}
-		for(j = 0; j < channels; j++) {
-			unsigned char *from = (void*)&(b[j][i]);
-			unsigned char *to = ptr;
-			for(k = 0; k < bps; k++) {
-				*to++ = *from++;
-				ptr++;
-				rem--;
-			}
+	int i;
+	buf_str *ctx = c;
+	for (i = 0; i < f->header.blocksize; i++) {
+		if (ctx->to <= 0) return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		ctx->to--;
+		if (ctx->from > 0) { ctx->from--; continue; }
+		uint16_t *ptr = ctx->p.buf + (ctx->cur_id * ctx->p.period + ctx->cur_period) * CHANNELS * BITS / 8;
+		ptr[0] = b[0][i];
+		ptr[1] = b[1][i];
+		if (++ctx->cur_period >= ctx->p.period) {
+			ctx->cur_id++;
+			ctx->cur_id = ctx->cur_id & ctx->p.buf_max;
+			MUTEX_LOCK(ctx->p.mutex + ctx->cur_id);
+			MUTEX_UNLOCK(ctx->p.mutex + ((ctx->cur_id - 1) & ctx->p.buf_max));
+			ctx->cur_period = 0;
 		}
 	}
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
-static void ecb(const FLAC__StreamDecoder *d, FLAC__StreamDecoderErrorStatus s,
-		void *c) {
-}
-void *flac_read(FILE *f, int *size, size_t from, size_t to) {
-	gf = from / 4;
-	gt = to / 4;
+void flac_read(FILE *f, buf_str *ctx) {
+	ctx->from /= CHANNELS * BITS / 8;
+	ctx->to /= CHANNELS * BITS / 8;
 	FLAC__StreamDecoder *d = FLAC__stream_decoder_new();
-	FLAC__stream_decoder_init_FILE(d, f, wcb, mdcb, ecb, NULL);
+	FLAC__stream_decoder_init_FILE(d, f, wcb, mdcb, ecb, ctx);
 	FLAC__stream_decoder_process_until_end_of_stream(d);
 	FLAC__stream_decoder_delete(d);
-	*size = len - rem;
-	return data;
 }

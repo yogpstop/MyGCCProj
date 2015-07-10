@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "main.h"
 
 void read_cue(char *fn, size_t track, size_t *from, size_t *to) {
 	int fd = open(fn, O_RDONLY);
@@ -21,11 +22,12 @@ void read_cue(char *fn, size_t track, size_t *from, size_t *to) {
 	}
 	if (st.st_size > read(fd, data, st.st_size)) {
 		close(fd);
+		free(data);
 		return;
 	}
 	close(fd);
 	char tr[9], *cpos;
-	sprintf(tr, "TRACK %02ld", track);
+	sprintf(tr, "TRACK %02"PFZ"u", track);
 	cpos = strstr(data, tr);
 	if (!cpos) {
 		free(data);

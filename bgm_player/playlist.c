@@ -9,27 +9,49 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "list.h"
-#include "fsutil.h"
+#include "main.h"
 
 //TODO: allocation failed
 
-static char **visited = NULL;
-static size_t visited_size = 0;
-static int visit(char *n) {
-	size_t i;
-	if (visited) {
-		for (i = 0; i < visited_size; i++) {
-			if (visited[i] && !strcmp(visited[i], n)) return 1;
-		}
-	}
-	visited = realloc(visited, ++visited_size * sizeof(char*));
-	char **to = &(visited[visited_size - 1]);
-	*to = malloc((strlen(n) + 1) * sizeof(char));
-	strcpy(*to, n);
+static int df_cmp(const void *f1, const void *f2) {
+	const data_format *d1 = f1; const data_format *d2 = f2;
+	int r = strcmp(d1->n, d2->n);
+	if (r) return r;
+	if (d1->f != d2->f) return d1->f - d2->f;
+	if (d1->t != d2->t) return d1->t - d2->t;
 	return 0;
 }
-static void clear_visited() {
+static int cpp_cmp(const void *f1, const void *f2) {
+	return strcmp(*((const char**)f1), *((const char**)f2));
+}
+static ssize_t bspos(const void *key, const void *base,
+		const size_t len, const size_t size,
+		int (*compar)(const void*, const void*)) {
+	size_t min = 0, max = len, idx; int diff;
+	while (min < max) {
+		idx = (min + max) >> 1;
+		diff = compar(key, base + idx * size);
+		if (diff < 0) max = idx;
+		else if (diff > 0) min = idx + 1;
+		else return -1;
+	}
+	if (max < len && compar(key, base + max * size) > 0) return max + 1;
+	return max;
+}
+
+static int visit(char *add, char ***visited, size_t *visited_size) {
+	ssize_t pos = bspos(&add, *visited, *visited_size, sizeof(char*), cpp_cmp);
+	if (pos < 0) return 1;
+	char **new = malloc(++*visited_size * sizeof(data_format));
+	memcpy(new, *visited, pos * sizeof(char*));
+	new[pos] = malloc((strlen(add) + 1) * sizeof(char));
+	strcpy(new[pos], add);
+	memcpy(new + pos + 1, *visited + pos, (*visited_size - pos - 1) * sizeof(char*));
+	free(*visited);
+	*visited = new;
+	return 0;
+}
+static void clear_visited(char **visited, size_t visited_size) {
 	size_t i;
 	if (visited) {
 		for (i = 0; i < visited_size; i++) {
@@ -37,18 +59,22 @@ static void clear_visited() {
 		}
 		free(visited);
 	}
-	visited = NULL;
 }
 
-data_format *list = NULL;
-size_t list_size = 0;
-static void listing_do(char *);
-static void list_add(char *n, size_t f, size_t t) {
-	list = realloc(list, ++list_size * sizeof(data_format));
-	list[list_size - 1].n = malloc((strlen(n) + 1) * sizeof(char));
-	strcpy(list[list_size - 1].n, n);
-	list[list_size - 1].f = f;
-	list[list_size - 1].t = t;
+static void listing_do(char *, data_format**, size_t*, char***, size_t*);
+static void list_add(data_format **list, size_t *list_size, char *n, size_t f, size_t t) {
+	data_format key = {n, f, t};
+	ssize_t pos = bspos(&key, *list, *list_size, sizeof(data_format), df_cmp);
+	if (pos < 0) return;
+	data_format *new = malloc(++*list_size * sizeof(data_format));
+	memcpy(new, *list, pos * sizeof(data_format));
+	new[pos].n = malloc((strlen(n) + 1) * sizeof(char));
+	strcpy(new[pos].n, n);
+	new[pos].f = f;
+	new[pos].t = t;
+	memcpy(new + pos + 1, *list + pos, (*list_size - pos - 1) * sizeof(data_format));
+	free(*list);
+	*list = new;
 }
 static char *list_read_do(int input) {
 	char *cur, *buf, *end;
@@ -70,7 +96,7 @@ static char *list_read_do(int input) {
 	*cur = 0;
 	return buf;
 }
-static void list_read(int fd, char *n) {
+static void list_read(int fd, char *n, data_format **list, size_t *list_size, char ***visited, size_t *visit_size) {
 	char *old = getcwd(NULL, 0);
 	char *new = dirname(n);
 	if (!new) {
@@ -95,7 +121,7 @@ static void list_read(int fd, char *n) {
 			free(buf);
 			break;
 		}
-		listing_do(buf);
+		listing_do(buf, list, list_size, visited, visit_size);
 		free(buf);
 	}
 	if (chdir(old)) {
@@ -104,8 +130,8 @@ static void list_read(int fd, char *n) {
 	}
 	free(old);
 }
-static void dir_read(char *n) {
-	if (visit(n)) return;
+static void dir_read(char *n, data_format **list, size_t *list_size, char ***visited, size_t *visit_size) {
+	if (visit(n, visited, visit_size)) return;
 	char *old = getcwd(NULL, 0);
 	if (chdir(n)) {
 		free(old);
@@ -116,7 +142,7 @@ static void dir_read(char *n) {
 		struct dirent *c;
 		while ((c = readdir(d))) {
 			if (strcmp(".", c->d_name) && strcmp("..", c->d_name))
-				listing_do(c->d_name);
+				listing_do(c->d_name, list, list_size, visited, visit_size);
 		}
 		closedir(d);
 	}
@@ -126,12 +152,11 @@ static void dir_read(char *n) {
 	}
 	free(old);
 }
-void read_cue(char *, size_t, size_t *, size_t *);
-static void listing_do(char *o) {
+static void listing_do(char *o, data_format **list, size_t *list_size, char ***visited, size_t *visit_size) {
 	size_t from = 0, to = SIZE_MAX;
-	char *c1 = strchr(o, ':'), *c2;
+	char *c1 = strchr(o, ';'), *c2;
 	char *n;
-	if (c1 && (c2 = strchr(c1 + 1, ':'))) {
+	if (c1 && (c2 = strchr(c1 + 1, ';'))) {
 		char *b = malloc(1 + c1 - o);
 		strncpy(b, o, c1 - o);
 		b[c1 - o] = 0;
@@ -147,82 +172,75 @@ static void listing_do(char *o) {
 	}
 	if (!n)
 		return;
-	int fd = open(n, O_RDONLY);
-	if (fd != -1) {
-		struct stat st;
+	struct stat st;
+	int fd;
+#ifdef _WIN32
+	if (!stat(n, &st)) {
+#else
+	if ((fd = open(n, O_RDONLY)) != -1) {
 		if (!fstat(fd, &st)) {
-			if (S_ISDIR(st.st_mode)) dir_read(n);
+#endif
+			if (S_ISDIR(st.st_mode)) dir_read(n, list, list_size, visited, visit_size);
 			else {
+#ifdef _WIN32
+			if ((fd = open(n, O_RDONLY)) != -1) {
+#endif
 				uint32_t fourcc;
 				if (read(fd, &fourcc, 4) == 4) {
-					if (fourcc == 0x46464952) list_add(n, from, to);
-					else if (fourcc == 0x43614C66) list_add(n, from, to);
-					else if (fourcc == 0x5453494C) list_read(fd, n);
+					if (fourcc == 0x46464952 || fourcc == 0x43614C66 || fourcc == 0x01564C46) list_add(list, list_size, n, from, to);
+					else if (fourcc == 0x5453494C) list_read(fd, n, list, list_size, visited, visit_size);
 				}
+#ifdef _WIN32
+				close(fd);
+#endif
 			}
 		}
+#ifndef _WIN32
 		close(fd);
+#endif
 	}
 	free(n);
 }
-static int mycmp(const void *a, const void *b) {
-	const data_format *aa = (const data_format *)a;
-	const data_format *bb = (const data_format *)b;
-	int buf;
-	buf = strcmp(aa->n, bb->n);
-	if (buf) return buf;
-	buf = aa->f - bb->f;
-	if (buf) return buf;
-	buf = aa->t - bb->t;
-	return buf;
-}
-static void list_remove(size_t pos) {
-	if (list[pos].n) free(list[pos].n);
-	if (pos + 1 < list_size) {
-		memmove(list + pos, list + pos + 1,
-			(list_size - pos - 1) * sizeof(data_format));
-	}
-	list = realloc(list, --list_size * sizeof(data_format));
-}
-void list_full_remove() {
+void list_full_remove(data_format *list) {
 	size_t i;
 	if (list) {
-		for (i = 0; i < list_size; i++) {
+		for (i = 0; list[i].n; i++) {
 			if (list[i].n) free(list[i].n);
 		}
 		free(list);
 	}
 	list = NULL;
 }
-static void list_swap(size_t p1, size_t p2) {
-	data_format t = list[p1];
-	list[p1] = list[p2];
-	list[p2] = t;
-}
-void list_shuffle() {
+void list_shuffle(data_format *list) {
+#ifdef _WIN32
+	srand(time(NULL));
+#else
 	srandom(time(NULL));
+#endif
 	size_t i, r;
-	for (i = 0; i < list_size; i++) {
-		r = random() % list_size;
-		list_swap(i, r);
+	data_format t;
+	for (i = 1; list[i].n; i++) {
+#ifdef _WIN32
+		r = rand() % i;
+#else
+		r = random() % i;
+#endif
+		t = list[i];
+		list[i] = list[r];
+		list[r] = t;
 	}
 }
-int listing(char **n) {
+data_format *listing(char **n) {
+	data_format *list = NULL;
+	size_t list_size = 0;
+	char **visited = NULL;
+	size_t visit_size = 0;
 	while (*n) {
-		listing_do(*n++);
+		listing_do(*n++, &list, &list_size, &visited, &visit_size);
 	}
-	clear_visited();
-	if (!list_size || !list) return 1;
-	qsort(list, list_size, sizeof(data_format), mycmp);
-	size_t cur = 1;
-	while (cur < list_size) {
-		if (!strcmp(list[cur - 1].n, list[cur].n)
-				&& list[cur - 1].f == list[cur].f
-				&& list[cur - 1].t == list[cur].t) {
-			list_remove(cur);
-		} else {
-			cur++;
-		}
-	}
-	return 0;
+	clear_visited(visited, visit_size);
+	if (!list) return NULL;
+	list = realloc(list, (list_size + 1) * sizeof(data_format));
+	list[list_size].n = NULL;
+	return list;
 }
