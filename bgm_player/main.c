@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
 		MUTEX_INIT(ctx.p.mutex + i);
 	}
 	ctx.p.update = malloc(sizeof(unsigned char) * (ctx.p.buf_max + 1));
+	memset(ctx.p.update, 0, sizeof(unsigned char) * (ctx.p.buf_max + 1));
 	ctx.p.buf = malloc((ctx.p.buf_max + 1) * ctx.p.period * CHANNELS * BITS / 8);
 	//FIXME memory allocation failed
 	ctx.list = listing(argv + 1);
@@ -32,7 +33,6 @@ int main(int argc, char **argv) {
 	pthread_attr_setschedparam(&rt, &p);
 #endif
 	CREATE_THREAD(buffer, buffer_thread, &ctx);
-	//TODO wait buffering
 	CREATE_THREAD_RT(play, play_thread, &ctx.p, &rt);
 	console();
 	JOIN_THREAD(buffer);

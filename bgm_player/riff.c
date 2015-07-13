@@ -6,10 +6,10 @@
 #define BITS 16
 // multiple data tag is unsupported
 void riff_read(FILE *f, buf_str *ctx) {
-	uint32_t rbuf[2] = {};
+	uint32_t rbuf[2];
 	void *ptr;
 	int rem = 0, read;
-	if (fseek(f, 8, SEEK_CUR)) goto Lexit;
+	if (fseek(f, 12, SEEK_CUR)) goto Lexit;
 	do {
 		if (fread(rbuf, 8, 1, f) != 1) goto Lexit;
 	} while (rbuf[0] != 0x61746164 && !fseek(f, rbuf[1], SEEK_CUR));

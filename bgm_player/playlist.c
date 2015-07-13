@@ -157,6 +157,7 @@ static void listing_do(char *o, data_format **list, size_t *list_size, char ***v
 	char *c1 = strchr(o, ';'), *c2;
 	char *n;
 	if (c1 && (c2 = strchr(c1 + 1, ';'))) {
+		// cueSheet;dataFile;trackNum
 		char *b = malloc(1 + c1 - o);
 		strncpy(b, o, c1 - o);
 		b[c1 - o] = 0;

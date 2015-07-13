@@ -3,12 +3,15 @@
 #include "main.h"
 #define CHANNELS 2
 #define BITS 16
-THREAD_RAC play_thread(void *buf) {
+THREAD_RAC play_thread(void *arg) {
 	void *handle;
 	snd__(init, &handle);
 	size_t remain, done, cur_id = 0;
 	void *ptr;
-	pcm *str = buf;
+	pcm *str = arg;
+	volatile unsigned char *sync = str->update + cur_id;
+	while (!*sync);
+	*sync = 0;
 	MUTEX_LOCK(str->mutex + cur_id);
 	while(1) {
 		remain = str->period;

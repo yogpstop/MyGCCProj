@@ -28,7 +28,10 @@ static inline void buffering_do(buf_str *ctx, size_t idx) {
 THREAD_RAC buffer_thread(void *arg) {
 	size_t cur = 0;
 	buf_str *ctx = arg;
+	volatile unsigned char *sync = ctx->p.update + ctx->cur_id;
 	MUTEX_LOCK(ctx->p.mutex + ctx->cur_id);
+	*sync = 0xFF;
+	while (*sync);
 	while(1) {
 		if (force_exit_signal) break;
 		buffering_do(ctx, cur++);

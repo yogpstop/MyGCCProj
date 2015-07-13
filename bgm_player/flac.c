@@ -16,7 +16,6 @@ static FLAC__StreamDecoderWriteStatus wcb(const FLAC__StreamDecoder *d,
 	for (i = 0; i < f->header.blocksize; i++) {
 		if (ctx->to <= 0) return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		ctx->to--;
-		if (ctx->from > 0) { ctx->from--; continue; }
 		uint16_t *ptr = ctx->p.buf + (ctx->cur_id * ctx->p.period + ctx->cur_period) * CHANNELS * BITS / 8;
 		ptr[0] = b[0][i];
 		ptr[1] = b[1][i];
@@ -31,10 +30,10 @@ static FLAC__StreamDecoderWriteStatus wcb(const FLAC__StreamDecoder *d,
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 void flac_read(FILE *f, buf_str *ctx) {
-	ctx->from /= CHANNELS * BITS / 8;
-	ctx->to /= CHANNELS * BITS / 8;
+	ctx->to = (ctx->to - ctx->from) / (CHANNELS * BITS / 8);
 	FLAC__StreamDecoder *d = FLAC__stream_decoder_new();
 	FLAC__stream_decoder_init_FILE(d, f, wcb, mdcb, ecb, ctx);
+	FLAC__stream_decoder_seek_absolute(d, ctx->from / (CHANNELS * BITS / 8));
 	FLAC__stream_decoder_process_until_end_of_stream(d);
 	FLAC__stream_decoder_delete(d);
 }

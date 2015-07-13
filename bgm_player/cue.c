@@ -8,14 +8,18 @@
 #include "main.h"
 
 void read_cue(char *fn, size_t track, size_t *from, size_t *to) {
-	int fd = open(fn, O_RDONLY);
+	int fd = open(fn, O_RDONLY
+#ifdef _WIN32
+		| O_BINARY
+#endif
+	);
 	if (fd == -1) return;
 	struct stat st;
 	if (fstat(fd, &st)) {
 		close(fd);
 		return;
 	}
-	char *data = malloc(st.st_size);
+	char *data = malloc(st.st_size + 1);
 	if (!data) {
 		close(fd);
 		return;
@@ -26,6 +30,7 @@ void read_cue(char *fn, size_t track, size_t *from, size_t *to) {
 		return;
 	}
 	close(fd);
+	data[st.st_size] = 0;
 	char tr[9], *cpos;
 	sprintf(tr, "TRACK %02"PFZ"u", track);
 	cpos = strstr(data, tr);
