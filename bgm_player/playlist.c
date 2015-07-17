@@ -186,10 +186,11 @@ static void listing_do(char *o, data_format **list, size_t *list_size, char ***v
 #ifdef _WIN32
 			if ((fd = open(n, O_RDONLY)) != -1) {
 #endif
-				uint32_t fourcc;
-				if (read(fd, &fourcc, 4) == 4) {
-					if (fourcc == 0x46464952 || fourcc == 0x43614C66 || fourcc == 0x01564C46) list_add(list, list_size, n, from, to);
-					else if (fourcc == 0x5453494C) list_read(fd, n, list, list_size, visited, visit_size);
+				uint32_t fourcc[2];
+				if (read(fd, fourcc, 8) == 8) {
+					if (fourcc[0] == 0x46464952 || fourcc[0] == 0x43614C66
+							|| fourcc[0] == 0x01564C46 || fourcc[1] == 0x70797466) list_add(list, list_size, n, from, to);
+					else if (fourcc[0] == 0x5453494C) list_read(fd, n, list, list_size, visited, visit_size);
 				}
 #ifdef _WIN32
 				close(fd);

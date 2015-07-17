@@ -46,9 +46,10 @@ int snd_mmdev_write(void *arg, void *buf, int len) {
 	mmdev_str *ctx = arg;
 	UINT32 pad;
 	BYTE *ptr;
+check:
 	ctx->cli->lpVtbl->GetCurrentPadding(ctx->cli, &pad);
 	pad = ctx->bflen - pad;
-	if (pad < PERIOD_SIZE) Sleep(1);
+	if (pad < PERIOD_SIZE) { SLEEP_MS; goto check; }
 	if (pad > len) pad = len;
 	ctx->rdr->lpVtbl->GetBuffer(ctx->rdr, pad, &ptr);
 	memcpy(ptr, buf, pad * CHANNELS * BITS / 8);

@@ -2,7 +2,7 @@ CC := gcc
 CCLD := $(CC)
 CFLAGS := -Wall -Werror -march=native -O3 -pipe -flto
 LDFLAGS := -s
-LIBS := -lFLAC -lmpg123
+LIBS := -lFLAC -lmpg123 -lfaad
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:%.c=%.o)
 DEPS := $(SRCS:%.c=%.d)

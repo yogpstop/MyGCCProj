@@ -4,3 +4,6 @@
 *.res
 *.exe
 *.dll
+*.sdf
+ipch/
+Release/

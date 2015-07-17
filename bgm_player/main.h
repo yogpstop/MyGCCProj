@@ -69,9 +69,11 @@ char *dirname(char*);
 char *abspath(char*);
 // file format section
 int flv_per_tag(FILE*, void*, int (*func)(uint8_t, uint32_t, unsigned int, void*, void*));
+void mp4_read(FILE*, buf_str*);
 void flv1_read(FILE*, buf_str*);
 void flac_read(FILE*, buf_str*);
 void riff_read(FILE*, buf_str*);
+void bytes2buf(void*, size_t, buf_str*);
 // sound output section
 #define snd__(func, ...) _snd__(SNDAPI, func, __VA_ARGS__)
 #define _snd__(api, func, ...) __snd__(api, func, __VA_ARGS__)
